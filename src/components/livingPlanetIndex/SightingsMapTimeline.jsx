@@ -3,11 +3,11 @@ import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-// import components
+// import common components
 import YearSlider from "@/common-components/YearSlider";
-import FilterComponent from "@/common-components/FilterComponent";
+import SearchAndFilter from "@/common-components/SearchAndFilter";
 // import constants
-import { QUERY_STRINGS } from "@/constants/api-constants";
+import { API_ENDPOINTS, QUERY_STRINGS } from "@/constants/api-constants";
 
 const {SPECIES, COMMON_NAME} = QUERY_STRINGS;
 
@@ -49,9 +49,17 @@ const SliderContainer = styled.div`
   padding: 20px 32px 80px;
   background: #00000087;
   backdrop-filter: blur(10px);
+
+  /* Hide scrollbar but allow scroll */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
 `;
 
-export default function Sightings() {
+export default function SightingsMapTimeline() {
   const mapRef = useRef(null);
   const [map, setMap] = useState(null);
   const [data, setData] = useState([]);
@@ -62,7 +70,7 @@ export default function Sightings() {
 
   const getSightingsData = async (filter = null) => {
     const url =
-      "http://localhost:3000/api/sightings" +
+      "http://localhost:3000/api" + API_ENDPOINTS.SIGHTINGS.MAIN +
       (filter
         ? `?${Object.entries(filter)
             .map(([key, value], _) => `${key}=${value}`)
@@ -182,7 +190,7 @@ export default function Sightings() {
 
   return (
     <PageWrapper className="page-wrapper">
-      <FilterComponent
+      <SearchAndFilter
         topics={[
           {
             title: "Species",

@@ -1,10 +1,11 @@
-import Sightings from "@/components/Sightings";
+import SightingsMapTimeline from "@/components/livingPlanetIndex/SightingsMapTimeline";
+import PopulationTrendAreaChart from "@/components/livingPlanetIndex/populationTrend/PopulationTrendAreaChart";
 
-export default async function Home() {
+export default function Home() {
 
   return (
-    <div className="HomeDiv" style={{width: "100vw", height: "auto"}}>
-      <Sightings />
+    <div className="MainDiv" style={{width: "100vw", height: "100vh"}}>
+      <PopulationTrendAreaChart />
     </div>
   );
 }

@@ -1,0 +1,167 @@
+Now I need you to write the API for me that will query the lpi_data based on Binomial and Country filters (user might none either of these two filters or both).
+If the api call has either Country or Binomial filter but not both then always assume focus to be the column mentioned in the filter.
+
+Below are some of the example API calls to the /population-trend-chart endpoint:
+1. "population-trend-chart/?filter_by=Common name&Binomial=panthera tigris" // consider population over all countries since countries filter isn't mentioned.
+2. "population-trend-chart/?filter_by=Common name&Binomial=panthera tigris,panthera leo"
+3. "population-trend-chart/?filter_by=Country,Common name&country=south africa&Binomial=panthera tigris,panthera leo"
+4. "population-trend-chart/?filter_by=Country&country=South Africa"
+
+For each of the above, here is the API result I am expecting:
+1. result = {
+  "filter_by": ["Binomial"],
+  "axes": {
+    "x": "Year",
+    "y": "Population"
+  },
+  "data": [
+    {
+      "name": "Panthera tigris"
+      [
+        { "x": 1970, "y": 140 },
+        { "x": 1971, "y": 135 },
+        { "x": 1972, "y": 125 },
+        ...
+      ]
+    }
+  ]
+}
+2. result = {
+  "filter_by": ["Binomial"],
+  "axes": {
+    "x": "Year",
+    "y": "Population"
+  },
+  "data": [
+    {
+      "name": "Panthera tigris",
+      "data": [
+        { "x": 1970, "y": 140 },
+        { "x": 1971, "y": 135 },
+        { "x": 1972, "y": 125 },
+        ...
+      ]
+    },
+    {
+      "name": "Panthera leo",
+      "data": [
+        { "x": 1970, "y": 140 },
+        { "x": 1971, "y": 135 },
+        { "x": 1972, "y": 125 },
+        ...
+      ]
+    }
+  ]
+}
+3. result = {
+  "filter_by": ["Country", "Binomial"],
+  "axes": {
+    "x": "Year",
+    "y": "Population"
+  },
+  "country": "South Africa",
+  "data": [
+    {
+      "name": "Panthera tigris",
+      "data": [
+        { "x": 1970, "y": 140 },
+        { "x": 1971, "y": 135 },
+        { "x": 1972, "y": 125 },
+        ...
+      ]
+    },
+    {
+      "name": "Panthera leo",
+      "data": [
+        { "x": 1970, "y": 140 },
+        { "x": 1971, "y": 135 },
+        { "x": 1972, "y": 125 },
+        ...
+      ]
+    }
+  ]
+}
+4. result = {
+  "filter_by": ["Country"],
+  "axes": {
+    "x": "Year",
+    "y": "Population"
+  },
+ "country": "South Africa",
+  "data": [
+    {
+      "name": "All"
+      [
+        { "x": 1970, "y": 140 },
+        { "x": 1971, "y": 135 },
+        { "x": 1972, "y": 125 },
+        ...
+      ]
+    }
+  ]
+}
+
+When only Country is in the filter, the population should be an aggregate (by default average unless the api endpoint has another filter call agg that mentions either min, max, avg or stddev) of the population of all unique Binomials belonging to that country. Similarly when multiple countries are chosen and no Binomial filter is given, the populations (y values) should be the aggrregate of all unique Binomials present in each of the participating countries.
+When Multiple country names and multiple Binomials are present in the filter, the result would look like this:
+5. "population-trend-chart/?filter_by=country,Common name&country=south africa,south america&Binomial=panthera tigris,panthera leo"
+result = {
+  "filter_by": ["Binomial", "Country],
+  "axes": {
+    "x": "Year",
+    "y": "Population"
+  },
+ "binomial": "Panthera tigris,Panthera leo,...",
+  "data": [
+    {
+      "name": "South Africa"
+      [
+        { "x": 1970, "y": 140 },
+        { "x": 1971, "y": 135 },
+        { "x": 1972, "y": 125 },
+        ...
+      ]
+    },
+    {
+      "name": "South America"
+      [
+        { "x": 1970, "y": 140 },
+        { "x": 1971, "y": 135 },
+        { "x": 1972, "y": 125 },
+        ...
+      ]
+    },
+  ]
+}
+
+6. "population-trend-chart/?filter_by=country,Common name&country=south africa,south america&Binomial=panthera tigris"
+result = {
+  "filter_by": ["Binomial", "Country],
+  "axes": {
+    "x": "Year",
+    "y": "Population"
+  },
+ "binomial": "Panthera tigris",
+  "data": [
+    {
+      "name": "South Africa"
+      [
+        { "x": 1970, "y": 140 },
+        { "x": 1971, "y": 135 },
+        { "x": 1972, "y": 125 },
+        ...
+      ]
+    },
+    {
+      "name": "South America"
+      [
+        { "x": 1970, "y": 140 },
+        { "x": 1971, "y": 135 },
+        { "x": 1972, "y": 125 },
+        ...
+      ]
+    },
+  ]
+}
+
+To note: The "data" key in the result is always an array of json objects. Each json object always has a "name" key which has a single value.
+a. When a single binomial filter is given, there is a single json object inside the data array and data[0].name is that binomial

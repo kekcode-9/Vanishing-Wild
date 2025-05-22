@@ -23,6 +23,7 @@ const Input = styled.input`
   width: 100%;
   height: 100%;
   border: none;
+  outline: none;
 `;
 
 export default function Searchbar({
