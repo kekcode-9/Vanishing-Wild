@@ -12,10 +12,12 @@ export const QUERY_STRINGS = {
     FILTER_BY: "filter_by",
     SPECIES: "species",
     COMMON_NAME: "common_name",
-    Country: "country"
+    COUNTRY: "country",
+    BINOMIAL: "binomial"
 }
 export const RESPONSE_KEYS = {
     SPECIES: "species",
-    COMMON_NAMES: "commonNames",
-    COUNTRIES: "countries"
+    COMMON_NAMES: "common_names",
+    COUNTRIES: "countries",
+    BINOMIALS: "binomials"
 }

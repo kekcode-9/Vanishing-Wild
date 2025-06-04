@@ -1,3 +1,4 @@
+"use client"
 import SightingsMapTimeline from "@/components/livingPlanetIndex/SightingsMapTimeline";
 import PopulationTrendAreaChart from "@/components/livingPlanetIndex/populationTrend/PopulationTrendAreaChart";
 

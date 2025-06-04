@@ -107,8 +107,8 @@ export default function SightingsMapTimeline() {
     fetch("http://localhost:3000/api/sightings/filter-options")
       .then((res) => res.json())
       .then((data) => {
-        setSpeciesList(data.speciesList);
-        setCommonNamesList(data.namesList);
+        setSpeciesList(data.species_list);
+        setCommonNamesList(data.common_names_list);
       })
       .catch((err) => {
         console.error("error fetching filter lists: ", err);
@@ -118,6 +118,7 @@ export default function SightingsMapTimeline() {
   useEffect(() => {
     if (map && data) {
       const geoJSON1990 = data[`${focusedYear}`]; // show only data from this year on map
+      console.log("geoJSON1990: ", geoJSON1990)
 
       // Remove existing layer/source if needed
       if (map.getSource("species")) {
@@ -199,7 +200,7 @@ export default function SightingsMapTimeline() {
             name: SPECIES,
           },
           {
-            title: "Common names",
+            title: "Common_names",
             list: commonNamesList,
             keys: [COMMON_NAME],
             name: COMMON_NAME,

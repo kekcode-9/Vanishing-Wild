@@ -4,6 +4,7 @@ import { convertBigIntsToNumbers } from "@/lib/typeConversions";
 
 export async function GET (request) {
     const { searchParams } = new URL(request.url);
+    const filterCols = searchParams.get("filter_cols");
     const countryParam = searchParams.get("country");
     const commonNameParam = searchParams.get("common_name");
 
@@ -13,8 +14,6 @@ export async function GET (request) {
         if (!countryParam && !commonNameParam) {
             const commonNameList = await queryDB(`SELECT DISTINCT Common_name FROM lpi_data`);
             const countriesList = await queryDB(`SELECT DISTINCT Country FROM lpi_data`);
-
-            console.log("commonNameList: ", convertBigIntsToNumbers(commonNameList).map((r) => r.commonName));
 
             return NextResponse.json({
                 commonNames: commonNameList.map((item, _) => item["Common_name"]),

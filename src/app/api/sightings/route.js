@@ -39,7 +39,7 @@ export async function GET(request) {
           .map(([key, value], _) => {
             return `${key} = '${value}'`;
           })
-          .join("AND")}`
+          .join("AND ")}`
       : "";
 
   /**
@@ -63,6 +63,7 @@ export async function GET(request) {
     ${filterQuery}
   ) t -- subquery in the FROM clause needs an alias
   WHERE unnest_values IS NOT NULL`;
+  console.log("sql: ", sql);
 
   try {
     const results = await queryDB(sql);

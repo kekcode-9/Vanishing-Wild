@@ -324,13 +324,13 @@ I want you to write the api route as column agnostic when it comes to filters. S
 If instead of values a column query is given as: Column\_name="all" then There is no need to filter by that column.
 
 Here is an example of api call and result format (in filter column agnostic manner) which I am expecting:
-api url: "population-trend-chart/?filter-by=column\_1,column\_2\&column\_1=value 1, value 2,...\&column\_2=value 1, value 2, ...,focus=column\_name" (column\_name can be either column\_1 or column\_2)
+api url: "population_trend_chart/?filter_by=column\_1,column\_2\&column\_1=value 1, value 2,...\&column\_2=value 1, value 2, ...,focus=column\_name" (column\_name can be either column\_1 or column\_2)
 
 reponse = {
-"filter-by": \["column 1", "coulmn 2"],
-"focus-by": "coulmn name", // either column 1 or column 2
-"focused-values": \[...filters values given in the url for focus column],
-"other-column": "column name of the non-focus column",
+"filter_by": \["column 1", "coulmn 2"],
+"focus_by": "coulmn name", // either column 1 or column 2
+"focused_values": \[...filters values given in the url for focus column],
+"other_column": "column name of the non-focus column",
 "agg": "avg", // by default avg unless the api url has agg key and value specified
 "data": \[
 {
@@ -408,10 +408,10 @@ GET /population-trend-chart?filter-by=Country,Binomial&Country=India,South Afric
 
 ```json
 {
-  "filter-by": ["column_1", "column_2"],
-  "focus-by": "column_name",
-  "focused-values": ["value1", "value2", ...],
-  "other-column": "column_name of the non-focus column",
+  "filter_by": ["column_1", "column_2"],
+  "focus_by": "column_name",
+  "focused_values": ["value1", "value2", ...],
+  "other_column": "column_name of the non-focus column",
   "agg": "sum", 
   "data": [
     {

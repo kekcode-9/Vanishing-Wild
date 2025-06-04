@@ -263,7 +263,10 @@ export default function MultiFacetedFilter({
           <CTAButton
             className="cta-button"
             bg=" #097e11"
-            onClick={() => handleFinalSelection(selectedOptions)}
+            onClick={() => {
+              handleFinalSelection(selectedOptions);
+              onCancel();
+            }}
           >
             Apply all
           </CTAButton>

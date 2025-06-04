@@ -22,7 +22,7 @@ export async function GET(request) {
     const namesList = await queryDB(namesSQL);
     console.log("namesList: ", namesList.slice(0, 4))
 
-    return NextResponse.json({speciesList, namesList});
+    return NextResponse.json({species_list: speciesList, common_names_list: namesList});
   } catch (err) {
     console.error("DuckDB query error: ", err.stack);
     return NextResponse.json(
