@@ -17,7 +17,7 @@ export const QUERY_STRINGS = {
 }
 export const RESPONSE_KEYS = {
     SPECIES: "species",
-    COMMON_NAMES: "common_names",
-    COUNTRIES: "countries",
-    BINOMIALS: "binomials"
+    COMMON_NAME: "common_name",
+    COUNTRY: "country",
+    BINOMIAL: "binomial"
 }

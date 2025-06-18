@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import styled from "styled-components";
+import { useSelector } from "react-redux";
 // import common components
 import Checkbox from "./Checkbox";
+import RecursiveDropdown from "./RecursiveDropdown";
 
 const Overlay = styled.div`
   position: absolute;
@@ -142,6 +144,20 @@ const CTAButton = styled.button`
  *
  * facets = String[] // just the facet names
  */
+
+/**
+ * data: 
+ * {
+  * [facet: String]: {
+  *  isNested: Boolean,
+  *  facet: String, // actual column name in db
+  *  subFacet: String, // if isNested === true
+  *  allowMultiple: Boolean,
+  *  mappings: [String]: String, // if isNested === true,
+  *  options: String[], // if isNested === false
+  * }
+* }
+ */
 export default function MultiFacetedFilter({
   data = [],
   facets = [],
@@ -152,9 +168,44 @@ export default function MultiFacetedFilter({
   const [currentFacet, setCurrentFacet] = useState();
   const [currentOptions, setCurrentOptions] = useState(); // options from current facet
   const [selectedOptions, setSelctedOptions] = useState(); // final selection during facet switch
-  const [tempSelection, setTempSelection] = useState([]); // holds selections prior to facet switch
+  const [tempSelection, setTempSelection] = useState([]); // holds selections prior to facet 
+
+  const nestedDropdown = useSelector((state) => state.nestedDropdown);
+  
+  useEffect(() => {
+    handleFacetSwitch(facets[0]);
+  }, [])
 
   const handleFacetSwitch = useCallback(
+    (facet) => {
+      console.log("facet: ", facet);
+      if (!data[facet]) return;
+      const { isNested, mappings, options } = data[facet];
+
+      if (currentFacet !== facet) {
+        setCurrentFacet(facet);
+
+        if (isNested) {
+          setCurrentOptions(mappings);
+        } else {
+          setCurrentFacet(options);
+        }
+
+        if (selectedOptions) {
+          /**
+           * when switching back to a facet for which you had already made some selections,
+           * take those older selections into tempSelection, else set tempSelection to empty
+           */
+          setTempSelection(
+            selectedOptions[facet] ? [...selectedOptions[facet]] : []
+          );
+        }
+      }
+    },
+    [currentFacet, selectedOptions]
+  );
+
+  const handleFacetSwitch1 = useCallback(
     (facet) => {
       if (currentFacet !== facet && selectedOptions) {
         setCurrentFacet(facet);
@@ -211,6 +262,10 @@ export default function MultiFacetedFilter({
     }
   }, [tempSelection, currentFacet, selectedOptions]);
 
+  const handleChangeInNestedOptions = useCallback(() => {
+    console.log("nested selection: ", nestedDropdown);
+  }, [nestedDropdown])
+
   return (
     <Overlay>
       {JSON.stringify(tempSelection)} - {JSON.stringify(selectedOptions)}
@@ -232,18 +287,13 @@ export default function MultiFacetedFilter({
           </Sidebar>
           <FilterOptionsContainer className="filter-options-container">
             <FilterOptionsWrapper className="filter-options-wrapper">
-              {currentOptions &&
-                currentOptions.map((option, _) => {
-                  return (
-                    <Checkbox
-                      key={option}
-                      name={option}
-                      value={option}
-                      label={option}
-                      onCheckChange={() => handleCheckChange(option)}
-                    />
-                  );
-                })}
+              {JSON.stringify(nestedDropdown)}
+              <div>-----------------------------</div>
+              <RecursiveDropdown 
+                facetKey={"Class"}
+                facetedList={data}
+                onChange={handleChangeInNestedOptions}
+              />
             </FilterOptionsWrapper>
             <FacetFooter className="facet-footer">
               <CTAButton

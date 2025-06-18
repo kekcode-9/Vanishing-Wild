@@ -2,54 +2,69 @@ import { NextResponse } from "next/server";
 import { initializeDB, queryDB } from "@/lib/duckDB";
 import { convertBigIntsToNumbers } from "@/lib/typeConversions";
 
-export async function GET (request) {
-    const { searchParams } = new URL(request.url);
-    const filterCols = searchParams.get("filter_cols");
-    const countryParam = searchParams.get("country");
-    const commonNameParam = searchParams.get("common_name");
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
 
-    await initializeDB();
+  await initializeDB();
 
-    try {
-        if (!countryParam && !commonNameParam) {
-            const commonNameList = await queryDB(`SELECT DISTINCT Common_name FROM lpi_data`);
-            const countriesList = await queryDB(`SELECT DISTINCT Country FROM lpi_data`);
+  try {
+    const classToFamily = await queryDB(`
+      SELECT Class, STRING_AGG(DISTINCT Family, ', ') as Families FROM lpi_data GROUP BY Class
+    `);
 
-            return NextResponse.json({
-                commonNames: commonNameList.map((item, _) => item["Common_name"]),
-                countries: countriesList.map((item, i) => item["Country"])
-            })
-        } else if (countryParam) {
-            const countries = countryParam.split(",").map(c => `'${c.trim()}'`).join(", ");
+    const familyToBinomials = await queryDB(`
+      SELECT Family, STRING_AGG(DISTINCT Binomial, ', ') as Binomials FROM lpi_data GROUP BY Family
+    `);
 
-            const sql = `
-                SELECT DISTINCT Common_name
-                FROM lpi_data
-                WHERE Country in (${countries})
-            `;
+    const binomialToCommonName = await queryDB(`
+      SELECT * FROM binomial_to_cname_map
+    `);
 
-            const result = await queryDB(sql);
+    const binomialToCNameMap = {};
+    binomialToCommonName.map((item, _) => {
+      binomialToCNameMap[item.Binomial] = item.Common_name;
+    });
 
-            return NextResponse.json({
-                commonNames: convertBigIntsToNumbers(result).map((r) => r.commonName)
-            })
-        } else if (commonNameParam) {
-            const commonNames = commonNameParam.split(",").map(s => `'${s.trim()}'`).join(", ");
+    const facetedList = {
+      Class: {
+        facet: "Class",
+        isNested: true,
+        subFacet: "Family",
+        allowMultiple: false,
+        mappings: classToFamily.map((item, _) => ({
+          [item.Class]: item.Families.split(", "),
+        })),
+      },
+      Family: {
+        facet: "Family",
+        isNested: true,
+        subFacet: "Binomial",
+        allowMultiple: true,
+        mappings: familyToBinomials.map((item, _) => ({
+          [item.Family]: item.Binomials.split(", ").map(
+            (binomial, _) => binomial + " | " + binomialToCNameMap[binomial]
+          ),
+        })),
+      },
+      Binomial: {
+        facet: "Binomial",
+        isNested: false,
+        subFacet: null,
+        allowMultiple: true,
+        options: binomialToCommonName.map(
+          (item, _) => item.Binomial + " | " + item.Common_name
+        ),
+      },
+    };
 
-            const sql = `
-                SELECT DISTINCT Country
-                FROM lpi_data
-                WHERE Common_name in (${commonNames})
-            `;
-
-            const result = await queryDB(sql);
-
-            return NextResponse.json({
-                countries: convertBigIntsToNumbers(result).map((r) => r.Country)
-            })
-        }
-    } catch(err) {
-        console.error("DuckDB filter query error: ", err.stack);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-    }
+    return NextResponse.json({
+      facetedList,
+    });
+  } catch (err) {
+    console.error("DuckDB filter query error: ", err.stack);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }

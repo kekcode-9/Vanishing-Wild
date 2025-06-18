@@ -13,10 +13,30 @@ export async function initializeDB() {
   try {
     const filePath = path.resolve(process.cwd(), "data/LPD_2024_public.csv");
 
+    /**
+     * binomial_to_cname_map query explained:
+     * 1. GROUP BY Binomial, Common_name: Groups the rows by each (Binomial, Common_name) pair.
+     * 2. COUNT(*) AS freq: Counts how many times each pair appears — gives us frequency.
+     * 3. ROW_NUMBER() OVER (PARTITION BY Binomial ORDER BY COUNT(*) DESC) AS rn:
+     *    a. For each Binomial, it assigns a row number to its associated common names.
+     *    b. Orders them so the most frequent Common_name gets row number 1.
+     */
+
     const createViewSQL = `
-    CREATE VIEW lpi_data AS
-    SELECT * FROM read_csv_auto('${filePath}', HEADER=true);
-  `;
+      CREATE VIEW lpi_data AS
+      SELECT * FROM read_csv_auto('${filePath}', HEADER=true);
+
+      CREATE VIEW binomial_to_cname_map AS
+      SELECT Binomial, Common_name
+      FROM (
+        SELECT Binomial, Common_name, COUNT(*) AS freq,
+                ROW_NUMBER() OVER (PARTITION BY Binomial ORDER BY COUNT(*) DESC) AS rn
+        FROM lpi_data
+        WHERE Binomial IS NOT NULL AND Common_name IS NOT NULL
+        GROUP BY Binomial, Common_name
+      )
+      WHERE rn = 1;
+    `;
 
     await new Promise((resolve, reject) => {
       con.run(createViewSQL, (err) => {

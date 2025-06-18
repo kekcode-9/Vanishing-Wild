@@ -153,59 +153,13 @@ export default function PopulationTrendAreaChart() {
   };
 
   const getFacetedFilter = async (filterBy = null, values = []) => {
-    const url =
-      "http://localhost:3000/api" + FILTER_OPTIONS + `/?filter_cols=Binomial,Country` +
-      (filterBy ? `&${filterBy}=${values.join(",")}` : "");
+    const url = "http://localhost:3000/api" + FILTER_OPTIONS;
+
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
-        const { commonNames, countries } = data;
-
-        if (commonNames && countries) {
-          /**
-           * when all countries and all Common_names are queried
-           */
-          setFacetedFilter({
-            "Common_name": {
-              facet: "Common_name",
-              options: commonNames,
-              allowMultiple: true,
-            },
-            Country: {
-              facet: "Country",
-              options: countries,
-              allowMultiple: true,
-            },
-          });
-        } else if (commonNames && !countries) {
-          /**
-           * can happen when querying Common_names for a given set of countries
-           */
-          setFacetedFilter({
-            "Common_name": {
-              facet: "Common_name",
-              options: commonNames,
-              allowMultiple: true,
-            },
-            Country: {
-              ...facetedFilter[1],
-            },
-          });
-        } else if (!commonNames && countries) {
-          /**
-           * can happen when querying countries for a given set of Common_names
-           */
-          setFacetedFilter({
-            "Common_name": {
-              ...facetedFilter[0],
-            },
-            Country: {
-              facet: "Country",
-              options: countries,
-              allowMultiple: true,
-            },
-          });
-        }
+        const { facetedList } = data;
+        setFacetedFilter(facetedList);
       })
       .catch((err) => {
         console.error("failed to fetch filters: ", err);
@@ -327,7 +281,7 @@ export default function PopulationTrendAreaChart() {
       {showFilterMenu && (
         <MultiFacetedFilter
           data={facetedFilter}
-          facets={["Common_name", "Country"]}
+          facets={["Class"]}
           handleFinalSelection={handleFinalFacetSelection}
           onCancel={() => setShowFilterMenu(false)}
         />
