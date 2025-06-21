@@ -10,30 +10,10 @@ export async function GET(request) {
     ?.split(",")
     .map((s) => s.trim());
   const focus = searchParams.get("focus");
-  const agg = searchParams.get("agg") || "avg";
+  const agg = searchParams.get("agg") || "sum";
+  const country = searchParams.get("Country");
 
-  if (!filterBy || filterBy.length < 2 || !focus) {
-    return NextResponse.json(
-      {
-        error: "insufficient query parameters",
-      },
-      {
-        status: 400,
-      }
-    );
-  }
-
-  const other = filterBy.find((item) => item !== focus);
-  const focusValues = searchParams
-    .get(focus.toLowerCase())
-    ?.split(",")
-    .map((s) => `'${s.trim().replace("'", "").toLowerCase()}'`);
-  const otherValues = searchParams
-    .get(other.toLowerCase())
-    ?.split(",")
-    .map((s) => `'${s.trim().replace("'", "").toLowerCase()}'`);
-
-  if (!focusValues || !otherValues || focusValues === "all") {
+  if (!filterBy || !focus) {
     return NextResponse.json(
       {
         error: "insufficient query parameters",
@@ -45,74 +25,67 @@ export async function GET(request) {
   }
 
   try {
-    const whereClause = [];
-    whereClause.push(
-      `LOWER(REPLACE(${focus}, '''', ''))IN (${focusValues.join(", ")})`
+    const whereClause = filterBy.map(
+      (filterKey, _) =>
+        `${filterKey} IN (${searchParams
+          .get(filterKey)
+          .split(",")
+          .map((value, _) => `'${value}'`)
+          .join(", ")})`
     );
-    console.log("otherValues: ", otherValues);
-    otherValues[0] !== `'all'` &&
-      whereClause.push(
-        `LOWER(REPLACE(${other}, '''', '')) IN (${otherValues.join(", ")})`
-      );
+    if (focus === "Country") {
+      whereClause.push(`Country in (${searchParams.get("Country")})`);
+    }
+
     const filterQuery = `WHERE ${whereClause.join(" AND ")}`;
 
     const yearColumns = Array.from(
       { length: 2020 - 1950 + 1 },
       (_, i) => `${1950 + i}`
     );
+    const aliasedYearCols = yearColumns.map((year) => `"${year}" AS y${year}`).join(", ");
+    const selectedYearCols = yearColumns.map((year) => `y${year}`);
+
+    // const binomialToCommonName = await queryDB(`
+    //   SELECT * FROM binomial_to_all_cname_map
+    // `);
+
+    // const binomialToCNameMap = {};
+    // binomialToCommonName.map((item, _) => {
+    //   binomialToCNameMap[item.Binomial] = item.Common_name;
+    // });
 
     const sql = `
-    SELECT 
-    ${focus} as focus_value,
-    ${other} as other_value,
-    Latitude, Longitude,
-    ${yearColumns.map((year, _) => `"${year}"`).join(", ")},
-    FROM lpi_data
-    ${filterQuery}`;
+      SELECT 
+      ${focus},
+      ${selectedYearCols.map((year, _) => `SUM(${year}) AS ${year}`).join(", ")},
+      FROM (
+        SELECT Country, Class, Family, Binomial, ${aliasedYearCols}
+        FROM lpi_data
+      )
+      ${filterQuery}
+      GROUP BY ${focus}
+    `;
 
     const rows = await queryDB(sql);
 
-    const grouped = {};
-    for (const row of rows) {
-      const key = row.focus_value;
-      if (!grouped[key]) grouped[key] = {};
+    console.log("rows: ", rows);
 
-      for (const year of yearColumns) {
-        const val = row[year] !== "NULL" ? row[year] : null;
-        if (!grouped[key][year]) grouped[key][year] = [];
-        grouped[key][year].push(val);
-      }
-    }
+    const data = rows.map((row, _) => ({
+      name: row[focus],
+      data: selectedYearCols.map((year, _) => ({
+        x: Number(year.replace("y", "")),
+        y: Number(row[year])
+      }))
+    }));
 
-    const data = Object.entries(grouped).map(([name, yearMap]) => {
-      const points = yearColumns.map((year) => {
-        const values = yearMap[year].filter((v) => v !== null).map(v => Number(v));
-        console.log("values: ", values);
-        let y = null;
-        if (values.length) {
-          if (agg === "sum") y = values.reduce((a, b) => a + b, 0);
-          else if (agg === "min") y = Math.min(...values);
-          else if (agg === "max") y = Math.max(...values);
-          else if (agg === "stddev") {
-            const mean = values.reduce((a, b) => a + b, 0) / values.length;
-            y = Math.sqrt(
-              values.reduce((acc, val) => acc + (val - mean) ** 2, 0) /
-                values.length
-            );
-          } else y = values.reduce((a, b) => a + b, 0) / values.length;
-        }
-        return { x: parseInt(year), y };
-      });
-      return { name, data: points };
-    });
-
-    console.log("data: ", data);
+    console.log("data: ", JSON.stringify(data));
 
     return Response.json({
       "filter-by": filterBy,
       "focus-by": focus,
-      "focused-values": focusValues ?? Object.keys(grouped),
-      "other-column": other,
+      "focused-values": searchParams.get("focus").split(","),
+      "other-column": "Country",
       agg: agg,
       data,
     });

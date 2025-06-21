@@ -31,6 +31,8 @@ const nestedDropdownStateSlice = createSlice({
       const { facet, value } = action.payload;
       const existingValues = Array.from(state[facet]);
 
+      if (!existingValues.includes(value)) return state;
+      
       existingValues.splice(existingValues.indexOf(value), 1);
       state[facet] = existingValues;
       console.log("state after update: ", current(state));

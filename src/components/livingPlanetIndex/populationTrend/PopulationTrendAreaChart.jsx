@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useSelector } from "react-redux";
 import styled from "styled-components";
 import dynamic from "next/dynamic";
 import Highcharts from "highcharts";
@@ -9,7 +10,11 @@ import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import Checkbox from "@/common-components/Checkbox";
 import MultiFacetedFilter from "@/common-components/MultiFacetedFilter";
 // import constants
-import { API_ENDPOINTS, QUERY_STRINGS, RESPONSE_KEYS } from "@/constants/api-constants";
+import {
+  API_ENDPOINTS,
+  QUERY_STRINGS,
+  RESPONSE_KEYS,
+} from "@/constants/api-constants";
 
 const { MAIN, FILTER_OPTIONS } = API_ENDPOINTS.POPULATION_TREND_CHART;
 
@@ -95,6 +100,8 @@ const IconDiv = styled.div`
 `;
 
 export default function PopulationTrendAreaChart() {
+  const nestedDropdown = useSelector((state) => state.nestedDropdown);
+
   const [data, setData] = useState([
     {
       name: "Panthera tigris",
@@ -124,32 +131,41 @@ export default function PopulationTrendAreaChart() {
    * @param {*} isNormalized
    */
   const getData = async (filters = null, isNormalized = false) => {
-    const filter_by = Object.keys(filters);
-    const country = filters["Country"];
-    const common_name = filters["Common_name"];
+    console.log("getData called");
+    const filterBy = Object.keys(filters);
+    const focus =
+      filterBy.includes("Binomial") && filters["Binomial"].length > 0
+        ? "Binomial"
+        : filterBy.includes("Family") && filters["Family"].length > 0
+        ? "Family"
+        : "Class";
 
-    // const url =
-    //   "http://localhost:3000/api" + MAIN +
-    //   (filter_by ? `?${QUERY_STRINGS.FILTER_BY}=${filter_by.join(",")}` : "") +
-    //   (country ? `&${QUERY_STRINGS.COUNTRY}=${country.join(",")}` : "") +
-    //   (common_name ? `&${QUERY_STRINGS.COMMON_NAME}=${common_name.join(",")}` : "");
+    const url =
+      `http://localhost:3000/api${MAIN}?` +
+      `filter_by=${filterBy}&` +
+      `focus=${focus}&` +
+      filterBy
+        .map(
+          (filterKey, _) =>
+            `${filterKey}=${filters[filterKey]
+              .map((filterVal, _) => filterVal.split(" | ")[0])
+              .join(",")}`
+        )
+        .join("&") +
+      `&${QUERY_STRINGS.COUNTRY}=all` +
+      `&agg=sum`;
 
-    const url = `http://localhost:3000/api${MAIN}?` +
-    `filter_by=Common_name,Country&` +
-    `focus=Common_name&` +
-    `${QUERY_STRINGS.COMMON_NAME}=${common_name.join(",")}&` +
-    `${QUERY_STRINGS.COUNTRY}=all` +
-    `&agg=sum`
+    console.log("final url to send: ", url);
 
     fetch(url)
-    .then(res => res.json())
-    .then(data => {
-      console.log("data: ", data);
-      setData(data.data);
-    })
-    .catch((err) => {
-      console.error("Error in population trend getData: ", err);
-    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("data: ", data);
+        setData(data.data);
+      })
+      .catch((err) => {
+        console.error("Error in population trend getData: ", err);
+      });
   };
 
   const getFacetedFilter = async (filterBy = null, values = []) => {
@@ -170,11 +186,10 @@ export default function PopulationTrendAreaChart() {
     getFacetedFilter();
   }, []);
 
-  const onFacetApplied = (selection) => {};
-
-  const handleFinalFacetSelection = (selection) => {
-    getData(selection);
-  };
+  const handleFinalFacetSelection = useCallback(() => {
+    console.log("nestedDropdown to apply: ", nestedDropdown);
+    getData(nestedDropdown);
+  }, [nestedDropdown]);
 
   const options = {
     chart: {

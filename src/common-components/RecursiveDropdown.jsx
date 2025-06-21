@@ -58,6 +58,25 @@ export default function RecursiveDropdown({
     return selectedValues.map((selected, _) => Object.values(selected)[0]);
   }, [selectedValues]);
 
+  const removeNestedValues = (parentFacetValue) => {
+    facetedList[facetKey].mappings?.map((mapping, i) => {
+      const [key, valuesArr] = Object.entries(mapping)[0];
+      const subFacet = facetedList[facetKey].subFacet;
+
+      parentFacetValue === key &&
+        valuesArr.forEach((nestedValue, _) => {
+          if (nestedDropdown[subFacet].includes(nestedValue)) {
+            dispatch(
+              removeValuesFromFacet({
+                facet: facetedList[facetKey].subFacet,
+                value: nestedValue,
+              })
+            );
+          }
+        });
+    });
+  };
+
   const handleSelectionChange = useCallback(
     ([facet, value], toAdd = true) => {
       console.log("facet: ", facet, " | value: ", value, " | toAdd: ", toAdd);
@@ -75,21 +94,7 @@ export default function RecursiveDropdown({
             })
           );
         } else {
-          facetedList[facetKey].mappings?.map((mapping, i) => {
-            const [key, valuesArr] = Object.entries(mapping)[0];
-            const subFacet = facetedList[facetKey].subFacet;
-            
-            value === key && valuesArr.forEach((nestedValue, _) => {
-              if (nestedDropdown[subFacet].includes(nestedValue)) {
-                dispatch(
-                  removeValuesFromFacet({
-                    facet: facetedList[facetKey].subFacet,
-                    value: nestedValue
-                  })
-                )
-              }
-            })
-          })
+          removeNestedValues(value);
           dispatch(
             removeValuesFromFacet({
               facet,
@@ -120,8 +125,22 @@ export default function RecursiveDropdown({
     [selected, nestedDropdown]
   );
 
-  const handleChildSelectionUpdate = (selection) => {
+  const handleChildSelectionUpdate = useCallback((selection) => {
     onChange();
+  }, [nestedDropdown]);
+
+  const handleDeselctAll = (facetKey, selectedValuesArr) => {
+    if (selectedValuesArr) {
+      selectedValuesArr.forEach((value, _) => {
+        removeNestedValues(value);
+        dispatch(
+          removeValuesFromFacet({
+            facet: facetKey,
+            value,
+          })
+        );
+      });
+    }
   };
 
   const facetExists = useMemo(() => {
@@ -130,15 +149,18 @@ export default function RecursiveDropdown({
 
   return (
     <div style={{ marginBottom: "1rem", marginLeft: "1rem" }}>
-      <div
-        onClick={() => {
-          setSelected(null);
-          //
-          onChange();
-        }}
-      >
-        Deselect all -{" "}
-      </div>
+      {(selectedValuesArr.length > 0 ||
+        nestedDropdown[facetKey]?.length > 0) && (
+        <div
+          onClick={() => {
+            setSelected(null);
+            handleDeselctAll(facetKey, selectedValuesArr);
+            onChange();
+          }}
+        >
+          Deselect all -{" "}
+        </div>
+      )}
       {Object.entries(selectedValues).length === 0 ? (
         <>
           {facetedList[facetKey].isNested

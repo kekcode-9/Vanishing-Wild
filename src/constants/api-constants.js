@@ -10,14 +10,14 @@ export const API_ENDPOINTS = {
 }
 export const QUERY_STRINGS = {
     FILTER_BY: "filter_by",
-    SPECIES: "species",
-    COMMON_NAME: "common_name",
-    COUNTRY: "country",
-    BINOMIAL: "binomial"
+    SPECIES: "Species",
+    COMMON_NAME: "Common_name",
+    COUNTRY: "Country",
+    BINOMIAL: "Binomial",
 }
 export const RESPONSE_KEYS = {
-    SPECIES: "species",
-    COMMON_NAME: "common_name",
-    COUNTRY: "country",
-    BINOMIAL: "binomial"
+    SPECIES: "Species",
+    COMMON_NAME: "Common_name",
+    COUNTRY: "Country",
+    BINOMIAL: "Binomial"
 }

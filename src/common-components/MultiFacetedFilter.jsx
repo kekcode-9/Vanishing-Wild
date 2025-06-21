@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import styled from "styled-components";
-import { useSelector } from "react-redux";
 // import common components
 import Checkbox from "./Checkbox";
 import RecursiveDropdown from "./RecursiveDropdown";
@@ -168,9 +167,7 @@ export default function MultiFacetedFilter({
   const [currentFacet, setCurrentFacet] = useState();
   const [currentOptions, setCurrentOptions] = useState(); // options from current facet
   const [selectedOptions, setSelctedOptions] = useState(); // final selection during facet switch
-  const [tempSelection, setTempSelection] = useState([]); // holds selections prior to facet 
-
-  const nestedDropdown = useSelector((state) => state.nestedDropdown);
+  const [tempSelection, setTempSelection] = useState([]); // holds selections prior to facet
   
   useEffect(() => {
     handleFacetSwitch(facets[0]);
@@ -262,10 +259,6 @@ export default function MultiFacetedFilter({
     }
   }, [tempSelection, currentFacet, selectedOptions]);
 
-  const handleChangeInNestedOptions = useCallback(() => {
-    console.log("nested selection: ", nestedDropdown);
-  }, [nestedDropdown])
-
   return (
     <Overlay>
       {JSON.stringify(tempSelection)} - {JSON.stringify(selectedOptions)}
@@ -287,12 +280,9 @@ export default function MultiFacetedFilter({
           </Sidebar>
           <FilterOptionsContainer className="filter-options-container">
             <FilterOptionsWrapper className="filter-options-wrapper">
-              {JSON.stringify(nestedDropdown)}
-              <div>-----------------------------</div>
               <RecursiveDropdown 
                 facetKey={"Class"}
                 facetedList={data}
-                onChange={handleChangeInNestedOptions}
               />
             </FilterOptionsWrapper>
             <FacetFooter className="facet-footer">

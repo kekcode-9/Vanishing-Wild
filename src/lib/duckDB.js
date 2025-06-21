@@ -24,7 +24,7 @@ export async function initializeDB() {
 
     const createViewSQL = `
       CREATE VIEW lpi_data AS
-      SELECT * FROM read_csv_auto('${filePath}', HEADER=true);
+      SELECT * FROM read_csv_auto('${filePath}', HEADER=true, nullstr='NULL');
 
       CREATE VIEW binomial_to_cname_map AS
       SELECT Binomial, Common_name
@@ -37,6 +37,14 @@ export async function initializeDB() {
       )
       WHERE rn = 1;
     `;
+
+    /**
+     * CREATE VIEW binomial_to_all_cname_map AS
+      SELECT Binomial,
+      GROUP_CONCAT(DISTINCT Common_name, ', ') AS Common_names
+      FROM lpi_data
+      GROUP BY Binomial;
+     */
 
     await new Promise((resolve, reject) => {
       con.run(createViewSQL, (err) => {
