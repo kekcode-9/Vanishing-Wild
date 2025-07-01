@@ -69,8 +69,6 @@ export async function GET(request) {
 
     const rows = await queryDB(sql);
 
-    console.log("rows: ", rows);
-
     const data = rows.map((row, _) => ({
       name: row[focus],
       data: selectedYearCols.map((year, _) => ({
@@ -78,8 +76,6 @@ export async function GET(request) {
         y: Number(row[year])
       }))
     }));
-
-    console.log("data: ", JSON.stringify(data));
 
     return Response.json({
       "filter-by": filterBy,
