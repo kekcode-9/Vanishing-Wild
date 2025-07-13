@@ -24,7 +24,10 @@ export async function initializeDB() {
 
     const createViewSQL = `
       CREATE VIEW lpi_data AS
-      SELECT * FROM read_csv_auto('${filePath}', HEADER=true, nullstr='NULL');
+      SELECT * FROM read_csv_auto('${filePath}', HEADER=true, nullstr='NULL')
+      WHERE NOT (Family IN ('Falconidae') AND Class IN ('Reptilia'))
+        AND NOT (Binomial IN ('Neophema_chrysogaster', 'Pezoporus_wallicus') AND (NOT Family IN ('Psittaculidae')))
+        AND NOT (Family = 'Potamotrygonidae' AND (NOT Class in ('Elasmobranchii')));
 
       CREATE VIEW binomial_to_cname_map AS
       SELECT Binomial, Common_name
@@ -60,11 +63,22 @@ export async function initializeDB() {
   }
 }
 
-export async function queryDB(sql) {
+export async function queryDB(sql, params = []) {
   return new Promise((resolve, reject) => {
-    con.all(sql, (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows);
-    });
+    if (params.length > 0) {
+      con.all(sql, params, (err, rows) => {
+        if (err) {
+          console.error(`duckdb con.all query error: `, err);
+          reject(err);
+        } else resolve(rows);
+      });
+    } else {
+      con.all(sql, (err, rows) => {
+        if (err) {
+          console.error(`duckdb con.all query error: `, err);
+          reject(err);
+        } else resolve(rows);
+      });
+    }
   });
 }

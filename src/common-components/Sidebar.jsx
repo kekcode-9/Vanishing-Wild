@@ -16,9 +16,11 @@ const SidebarContainer = styled.div`
   gap: 24px;
   width: 500px;
   height: 100vh;
-  overflow-y: scroll;
+  overflow-y: hidden;
   overflow-x: hidden;
-  background: white;
+  background: black;
+  border-right: 1px solid #ffffff87;
+  padding: 16px;
 
   @media (max-width: 1280px) {
     display: ${({ show }) => (show === "true" ? "flex" : "none")};

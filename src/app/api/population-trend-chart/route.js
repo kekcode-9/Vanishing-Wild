@@ -25,25 +25,26 @@ export async function GET(request) {
   }
 
   try {
-    const whereClause = filterBy.map(
-      (filterKey, _) =>
-        `${filterKey} IN (${searchParams
-          .get(filterKey)
-          .split(",")
-          .map((value, _) => `'${value}'`)
-          .join(", ")})`
-    );
-    if (focus === "Country") {
-      whereClause.push(`Country in (${searchParams.get("Country")})`);
-    }
+    const whereClause = [`${focus} IN (${searchParams
+      .get(focus)
+      .split(",")
+      .map((value, _) => `'${value}'`)
+      .join(", ")})`];
 
-    const filterQuery = `WHERE ${whereClause.join(" AND ")}`;
+    if (filterBy.includes)
+      if (focus === "Country") {
+        whereClause.push(`Country in (${searchParams.get("Country")})`);
+      }
+
+    const filterQuery = `WHERE ${whereClause.join(" OR ")}`;
 
     const yearColumns = Array.from(
       { length: 2020 - 1950 + 1 },
       (_, i) => `${1950 + i}`
     );
-    const aliasedYearCols = yearColumns.map((year) => `"${year}" AS y${year}`).join(", ");
+    const aliasedYearCols = yearColumns
+      .map((year) => `"${year}" AS y${year}`)
+      .join(", ");
     const selectedYearCols = yearColumns.map((year) => `y${year}`);
 
     // const binomialToCommonName = await queryDB(`
@@ -58,7 +59,9 @@ export async function GET(request) {
     const sql = `
       SELECT 
       ${focus},
-      ${selectedYearCols.map((year, _) => `SUM(${year}) AS ${year}`).join(", ")},
+      ${selectedYearCols
+        .map((year, _) => `SUM(${year}) AS ${year}`)
+        .join(", ")},
       FROM (
         SELECT Country, Class, Family, Binomial, ${aliasedYearCols}
         FROM lpi_data
@@ -73,8 +76,8 @@ export async function GET(request) {
       name: row[focus],
       data: selectedYearCols.map((year, _) => ({
         x: Number(year.replace("y", "")),
-        y: Number(row[year])
-      }))
+        y: Number(row[year]),
+      })),
     }));
 
     return Response.json({

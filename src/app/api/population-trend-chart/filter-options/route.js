@@ -25,6 +25,69 @@ export async function GET(request) {
       binomialToCNameMap[item.Binomial] = item.Common_name;
     });
 
+    const queryString = searchParams.get("queryString");
+
+    console.log("query: ", new URL(request.url));
+
+    const oddShit = await queryDB(`SELECT * FROM lpi_data WHERE Family LIKE 'Falconidae' AND Class LIKE 'Reptilia'`);
+    console.log("oddShit: ", oddShit);
+
+    if (queryString) {
+      try {
+        const familyMatches = await queryDB(
+          `
+            SELECT DISTINCT 
+              Family, 
+              Class 
+            FROM lpi_data 
+            WHERE LOWER(Family) LIKE LOWER(?) || '%'
+          `,
+          [queryString]
+        );
+        const familiesList = familyMatches.map((match, _) => [
+          match.Family,
+          "Class-" + match.Class,
+        ]);
+
+        const binomialMatches = await queryDB(
+          `
+            SELECT DISTINCT 
+              Binomial, 
+              Family, 
+              Class 
+            FROM lpi_data 
+            WHERE LOWER(Binomial) LIKE LOWER(?) || '%'
+          `,
+          [queryString]
+        );
+        const binomialsList = binomialMatches.map((match, _) => [
+          match.Binomial,
+          "Family-" + match.Family,
+          "Class-" + match.Class,
+        ]);
+
+        const commonNameMatches = await queryDB(
+          `
+            SELECT DISTINCT Common_name,
+            FROM lpi_data 
+            WHERE LOWER(Common_name) LIKE LOWER(?) || '%'
+          `,
+          [queryString]
+        );
+        const commonNamesList = commonNameMatches.map((match, _) => [match.Common_name]);
+
+        return NextResponse.json({
+          matchedFacetedList: {
+            Family: [...familiesList],
+            Binomial: [...binomialsList],
+            Common_name: [...commonNamesList],
+          },
+        });
+      } catch (err) {
+        console.error("Failed creating search filter matches: ", err);
+      }
+    }
+
     const facetedList = {
       Class: {
         facet: "Class",

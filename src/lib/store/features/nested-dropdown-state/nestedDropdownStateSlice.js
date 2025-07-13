@@ -2,6 +2,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { current } from "@reduxjs/toolkit";
 
+/**
+ * state = {
+ *  [facet: String]: String[]
+ * }
+ */
 const nestedDropdownStateSlice = createSlice({
   name: "nestedDropdown", // this key is used internally for prefixing the action name to create a type
   initialState: {},
@@ -13,7 +18,7 @@ const nestedDropdownStateSlice = createSlice({
     insertUniqueValuesToFacet: (state, action) => {
       const { facet, valuesArr } = action.payload;
       const existingValues =
-        Object.keys(state).length > 0 ? state[facet] : null; // make a deep copy, just because
+        Object.keys(state).length > 0 ? state[facet] : null;
 
       if (existingValues && existingValues.length > 0) {
         valuesArr.forEach((element) => {

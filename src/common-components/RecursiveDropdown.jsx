@@ -5,6 +5,11 @@ import React, {
   useRef,
   useState,
 } from "react";
+import styled from "styled-components";
+// import icons
+import CloseIcon from "@mui/icons-material/Close";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 // redux-toolkit
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -13,8 +18,47 @@ import {
   removeValuesFromFacet,
   dropFacet,
 } from "@/lib/store/features/nested-dropdown-state/nestedDropdownStateSlice";
-// import common components
-import Checkbox from "./Checkbox";
+
+const DropdownContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 20px;
+  padding-left: 12px;
+`;
+
+const CapsuleItem = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  width: fit-content;
+  height: fit-content;
+  padding: 4px 8px;
+  border-radius: 100px;
+  border: 1px solid #ffffff45;
+  cursor: pointer;
+`;
+
+const FacetNestingWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 20px;
+`;
+
+const ClickableSpan = styled.span`
+  cursor: pointer;
+`;
+
+const closeIconStyle = {
+  width: "20px",
+  height: "20px",
+  cursor: "pointer",
+  paddingLeft: "4px",
+};
 
 /**
  type FacetedList = {
@@ -23,7 +67,7 @@ import Checkbox from "./Checkbox";
     isNested: boolean;
     subFacet: string | null;
     allowMultiple: boolean;
-    mappings?: { [key: string]: string[] }[];
+    mappings?: { [key: string]: string[] }[]; // key is an item of current facet and values are subfacet items falling under the key item
     options?: string[];
   };
 };
@@ -35,40 +79,58 @@ import Checkbox from "./Checkbox";
  */
 export default function RecursiveDropdown({
   facetKey, // String
-  facetedList, // FacetedList
+  facetedList = [], // FacetedList
   selectedValues = [], // { [facet: string]: string }[], example: [{Family: "family1"}, {Family: "family2"}]
   onChange = () => {}, // (selected: { [facet: string]: string }) => void;
+  externalSelection,
 }) {
-  const facet = facetedList[facetKey];
-  const [selected, setSelected] = useState(null); // [Facet: String, values: String[]]
   const [lastSelection, setLastSelection] = useState(null); // String | Null
   const allowMultiple = useRef(false);
 
   const nestedDropdown = useSelector((state) => state.nestedDropdown);
   const dispatch = useDispatch();
 
-  if (!facet) return null;
-
   useEffect(() => {
+    if (facetedList.length === 0) return;
     allowMultiple.current = facetedList[facetKey].allowMultiple;
   }, [facetedList]);
+
+  useEffect(() => {
+    const facetChoice = externalSelection
+      ? externalSelection.filter((item, _) => item.includes(facetKey))
+      : [];
+
+    if (facetChoice.length > 0) {
+      const value = facetChoice[0].split(`${facetKey}-`)[1];
+      setLastSelection(value);
+      dispatch(
+        insertUniqueValuesToFacet({
+          facet: facetKey,
+          valuesArr: [value],
+        })
+      );
+      console.log("last selection updated to: ", value);
+    }
+  }, [externalSelection, facetKey]);
 
   const selectedValuesArr = useMemo(() => {
     if (selectedValues.length === 0) return [];
     return selectedValues.map((selected, _) => Object.values(selected)[0]);
   }, [selectedValues]);
 
-  const removeNestedValues = (parentFacetValue) => {
-    facetedList[facetKey].mappings?.map((mapping, i) => {
+  const removeNestedValues = (parentFacetValue, facet) => {
+    console.log("parentFacet to remove: ", parentFacetValue);
+    facetedList[facet].mappings?.map((mapping, i) => {
       const [key, valuesArr] = Object.entries(mapping)[0];
-      const subFacet = facetedList[facetKey].subFacet;
-
+      const subFacet = facetedList[facet].subFacet;
+      parentFacetValue === key && console.log("to delete facet: ", key, " from ")
       parentFacetValue === key &&
         valuesArr.forEach((nestedValue, _) => {
-          if (nestedDropdown[subFacet].includes(nestedValue)) {
+          if (nestedDropdown[subFacet]?.includes(nestedValue)) {
+            removeNestedValues(nestedValue, subFacet);
             dispatch(
               removeValuesFromFacet({
-                facet: facetedList[facetKey].subFacet,
+                facet: facetedList[facet].subFacet,
                 value: nestedValue,
               })
             );
@@ -94,13 +156,14 @@ export default function RecursiveDropdown({
             })
           );
         } else {
-          removeNestedValues(value);
+          removeNestedValues(value, facetKey);
           dispatch(
             removeValuesFromFacet({
               facet,
               value,
             })
           );
+          setLastSelection(null);
         }
       } else {
         /**
@@ -116,18 +179,15 @@ export default function RecursiveDropdown({
           );
         } else {
           dispatch(dropFacet({ facet }));
+          setLastSelection(null);
         }
       }
 
       toAdd && setLastSelection(value);
-      onChange();
+      onChange(toAdd);
     },
-    [selected, nestedDropdown]
+    [nestedDropdown, facetKey]
   );
-
-  const handleChildSelectionUpdate = useCallback((selection) => {
-    onChange();
-  }, [nestedDropdown]);
 
   const handleDeselctAll = (facetKey, selectedValuesArr) => {
     if (selectedValuesArr) {
@@ -148,103 +208,49 @@ export default function RecursiveDropdown({
   }, [nestedDropdown]);
 
   return (
-    <div style={{ marginBottom: "1rem", marginLeft: "1rem" }}>
-      {(selectedValuesArr.length > 0 ||
-        nestedDropdown[facetKey]?.length > 0) && (
-        <div
-          onClick={() => {
-            setSelected(null);
-            handleDeselctAll(facetKey, selectedValuesArr);
-            onChange();
-          }}
-        >
-          Deselect all -{" "}
-        </div>
-      )}
+    <DropdownContainer className="dropdown-container">
+      {facetKey}
       {Object.entries(selectedValues).length === 0 ? (
         <>
-          {facetedList[facetKey].isNested
-            ? facetedList[facetKey].mappings.map((mapping, i) => {
-                const [key, valuesArr] = Object.entries(mapping)[0];
-                const subFacet = facetedList[facetKey].subFacet;
+          {Object.keys(facetedList).length > 0 &&
+            facetKey in facetedList &&
+            (facetedList[facetKey].isNested
+              ? facetedList[facetKey].mappings.map((mapping, _) => {
+                  // render the key and render child facet items recursively if the key is expanded (i.e., lastSelected)
+                  const [key, valuesArr] = Object.entries(mapping)[0];
+                  const subFacet = facetedList[facetKey].subFacet;
 
-                return (
-                  <div key={key}>
-                    <div onClick={() => handleSelectionChange([facetKey, key])}>
-                      {facetExists > 0 &&
-                        nestedDropdown[facetKey].includes(key) && (
-                          <span
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSelectionChange([facetKey, key], false);
-                            }}
-                          >
-                            X
-                          </span>
-                        )}{" "}
-                      {facetKey} - {key} - ({valuesArr.length})
-                    </div>
-                    {lastSelection === key && (
-                      <RecursiveDropdown
-                        facetKey={subFacet}
-                        selectedValues={valuesArr.map((value, _) => ({
-                          [subFacet]: value,
-                        }))}
-                        facetedList={facetedList}
-                        onChange={handleChildSelectionUpdate}
-                      />
-                    )}
-                  </div>
-                );
-              })
-            : facetedList[facetKey].options.map((option, i) => {
-                return (
-                  <div
-                    key={option}
-                    onClick={() => handleSelectionChange([facetKey, option])}
-                  >
-                    {facetExists > 0 &&
-                      nestedDropdown[facetKey].includes(key) && (
-                        <span
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSelectionChange([facetKey, option], false);
-                          }}
-                        >
-                          X
-                        </span>
-                      )}{" "}
-                    {facetKey} - {option}
-                  </div>
-                );
-              })}
-        </>
-      ) : (
-        <>
-          {facetedList[facetKey].isNested
-            ? facetedList[facetKey].mappings.map((mapping, i) => {
-                const [key, valuesArr] = Object.entries(mapping)[0];
-                const subFacet = facetedList[facetKey].subFacet;
-
-                if (selectedValuesArr.includes(key)) {
                   return (
-                    <div key={key}>
-                      <div
-                        onClick={() => handleSelectionChange([facetKey, key])}
-                      >
-                        {facetExists > 0 &&
-                          nestedDropdown[facetKey].includes(key) && (
-                            <span
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleSelectionChange([facetKey, key], false);
-                              }}
-                            >
-                              X
-                            </span>
-                          )}{" "}
-                        {facetKey} - {key} - ({valuesArr.length})
-                      </div>
+                    <FacetNestingWrapper
+                      key={key}
+                      className="facet-nesting-wrapper"
+                    >
+                      <CapsuleItem className="capsule-item">
+                        {lastSelection === key ? (
+                          <ArrowDropDownIcon
+                            onClick={() => setLastSelection(null)}
+                          />
+                        ) : (
+                          <ArrowRightIcon
+                            onClick={() => setLastSelection(key)}
+                          />
+                        )}
+                        <ClickableSpan
+                          onClick={() => handleSelectionChange([facetKey, key])}
+                        >
+                          {key} - ({valuesArr.length})
+                          {facetExists > 0 &&
+                            nestedDropdown[facetKey].includes(key) && (
+                              <CloseIcon
+                                sx={closeIconStyle}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSelectionChange([facetKey, key], false);
+                                }}
+                              />
+                            )}
+                        </ClickableSpan>
+                      </CapsuleItem>
                       {lastSelection === key && (
                         <RecursiveDropdown
                           facetKey={subFacet}
@@ -252,38 +258,131 @@ export default function RecursiveDropdown({
                             [subFacet]: value,
                           }))}
                           facetedList={facetedList}
-                          onChange={handleChildSelectionUpdate}
+                          onChange={(toAdd) =>
+                            toAdd &&
+                            handleSelectionChange([facetKey, key], true)
+                          }
+                          externalSelection={externalSelection}
                         />
                       )}
-                    </div>
+                    </FacetNestingWrapper>
                   );
-                }
-              })
-            : facetedList[facetKey].options.map((option, key) => {
-                if (selectedValuesArr.includes(option)) {
+                })
+              : facetedList[facetKey].options.map((option, _) => {
                   return (
-                    <div
+                    <CapsuleItem
                       key={option}
+                      className="capsule-item"
                       onClick={() => handleSelectionChange([facetKey, option])}
                     >
+                      {option}
                       {facetExists > 0 &&
-                        nestedDropdown[facetKey].includes(option) && (
-                          <span
+                        nestedDropdown[facetKey].includes(key) && (
+                          <CloseIcon
+                            sx={closeIconStyle}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleSelectionChange([facetKey, option], false);
                             }}
-                          >
-                            X
-                          </span>
-                        )}{" "}
-                      {facetKey} - {option}
-                    </div>
+                          />
+                        )}
+                    </CapsuleItem>
                   );
-                }
-              })}
+                }))}
+        </>
+      ) : (
+        <>
+          {facetKey in facetedList &&
+            (facetedList[facetKey].isNested
+              ? facetedList[facetKey].mappings.map((mapping, _) => {
+                  const [key, valuesArr] = Object.entries(mapping)[0];
+                  const subFacet = facetedList[facetKey].subFacet;
+
+                  if (selectedValuesArr.includes(key)) {
+                    return (
+                      <FacetNestingWrapper
+                        className="facet-nesting-wrapper"
+                        key={key}
+                      >
+                        <CapsuleItem className="capsule-item">
+                          {lastSelection === key ? (
+                            <ArrowDropDownIcon
+                              onClick={() => setLastSelection(null)}
+                            />
+                          ) : (
+                            <ArrowRightIcon
+                              onClick={() => setLastSelection(key)}
+                            />
+                          )}
+                          <ClickableSpan
+                            onClick={() =>
+                              handleSelectionChange([facetKey, key])
+                            }
+                          >
+                            {key} - ({valuesArr.length})
+                            {facetExists > 0 &&
+                              nestedDropdown[facetKey].includes(key) && (
+                                <CloseIcon
+                                  sx={closeIconStyle}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSelectionChange(
+                                      [facetKey, key],
+                                      false
+                                    );
+                                  }}
+                                />
+                              )}
+                          </ClickableSpan>
+                        </CapsuleItem>
+                        {lastSelection === key && (
+                          <RecursiveDropdown
+                            facetKey={subFacet}
+                            selectedValues={valuesArr.map((value, _) => ({
+                              [subFacet]: value,
+                            }))}
+                            facetedList={facetedList}
+                            onChange={(toAdd) =>
+                              toAdd &&
+                              handleSelectionChange([facetKey, key], true)
+                            }
+                            externalSelection={externalSelection}
+                          />
+                        )}
+                      </FacetNestingWrapper>
+                    );
+                  }
+                })
+              : facetedList[facetKey].options.map((option, _) => {
+                  if (selectedValuesArr.includes(option)) {
+                    return (
+                      <CapsuleItem
+                        className="capsule-item"
+                        key={option}
+                        onClick={() =>
+                          handleSelectionChange([facetKey, option])
+                        }
+                      >
+                        {facetKey} - {option}
+                        {facetExists > 0 &&
+                          nestedDropdown[facetKey].includes(option) && (
+                            <CloseIcon
+                              sx={closeIconStyle}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSelectionChange(
+                                  [facetKey, option],
+                                  false
+                                );
+                              }}
+                            />
+                          )}
+                      </CapsuleItem>
+                    );
+                  }
+                }))}
         </>
       )}
-    </div>
+    </DropdownContainer>
   );
 }
