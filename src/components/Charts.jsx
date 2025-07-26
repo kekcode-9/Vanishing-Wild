@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import styled from "styled-components";
 import dynamic from "next/dynamic";
 import Highcharts from "highcharts";
@@ -14,23 +14,27 @@ const ChartWrapper = styled.div`
   font-size: 20px;
 `;
 
-export default function LineCharts({ data, title, xAxisLabel, yAxisLabel }) {
-  const options = {
+export default function AreaChart({ data, title, xAxisLabel, yAxisLabel }) {
+  const options = useMemo(() => ({
     series: data,
     chart: {
       type: "area",
-      zoomType: "x",
-      pinchType: "x",
+      spacingLeft: 0,
+      height: (8 / 16 * 100) + '%', // 16:9 ratio
+      zoomType: "xy",
+      pinchType: "xy",
       panning: {
         enabled: true,
-        type: "x",
+        type: "xy",
       },
+      // panKey:
       backgroundColor: "transparent",
       animation: true,
     },
     title: {
       text: title,
       style: {
+        align: "left",
         color: " #ffffff",
       },
     },
@@ -88,14 +92,14 @@ export default function LineCharts({ data, title, xAxisLabel, yAxisLabel }) {
       area: {
         fillOpacity: 0.3,
         marker: {
-          enabled: false,
+          enabled: true,
         },
       },
     },
-  };
+  }), [title, xAxisLabel, yAxisLabel, data]);
 
   return (
-    <ChartWrapper className="chart-container">
+    <ChartWrapper className="chart-wrapper">
       <HighchartsReact highcharts={Highcharts} options={options} />
     </ChartWrapper>
   );

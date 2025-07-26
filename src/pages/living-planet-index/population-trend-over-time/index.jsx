@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 // import mui icons
 import FilterAltRoundedIcon from "@mui/icons-material/FilterAltRounded";
 // import components
-import LineCharts from "@/components/Charts";
+import AreaChart from "@/components/Charts";
 // import common components
 import Sidebar from "@/common-components/Sidebar";
 import Searchbar from "@/common-components/Searchbar";
@@ -26,7 +26,7 @@ const PageWrapper = styled.div`
   align-items: flex-start;
   justify-content: flex-start;
   width: 100%;
-  height: 100vh;
+  height: 100%;
   max-height: 100%;
   overflow: hidden;
   background: #141414;
@@ -36,8 +36,10 @@ const MainContainer = styled.div`
   flex-shrink: 1;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
   width: 100%;
-  height: 100vh;
+  height: 100%;
   padding: 32px;
   overflow-y: scroll;
   overflow-x: hidden;
@@ -47,7 +49,27 @@ const MainContainer = styled.div`
   }
 `;
 
-const ChartContainer = styled.div``;
+const ChartContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 32px;
+  width: min(100%, 1000px);
+`;
+
+const ChartHeaderWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: fit-content;
+`;
+
+const ChartTitle = styled.div`
+  font-size: 18px;
+  font-weight: 700;
+`;
 
 const SearchbarHolder = styled.div`
   display: flex;
@@ -55,7 +77,7 @@ const SearchbarHolder = styled.div`
   justify-content: center;
   width: 100%;
   height: fit-content;
-  padding: 16px;
+  padding: 0px 16px;
   box-sizing: border-box;
 `;
 
@@ -72,6 +94,8 @@ const CTAContainer = styled.div`
   padding: 0px 12px;
 `;
 
+const SeriesInfo = styled.div``
+
 const DEFAULT_FACET_KEY = "Class";
 
 export default function PopulationTrendOverTime() {
@@ -81,6 +105,7 @@ export default function PopulationTrendOverTime() {
   const [searchMatches, setSearchMatches] = useState({});
   const [selectionFromSearch, setSelectionFromSearch] = useState();
   const [data, setData] = useState([]);
+  const [filterApplied, setFilterApplied] = useState(false);
 
   const getFacetedFilter = (isNormalized = false) => {
     accessPublicEndpoint(FILTER_OPTIONS)
@@ -136,9 +161,11 @@ export default function PopulationTrendOverTime() {
       .then((data) => {
         console.log("population trend chart data: ", data);
         setData(data.data);
+        setFilterApplied(false);
       })
       .catch((err) => {
         console.error("Error in population trend getData: ", err);
+        setFilterApplied(false);
       });
   };
 
@@ -169,12 +196,13 @@ export default function PopulationTrendOverTime() {
   };
 
   const handleFinalFacetSelection = useCallback(() => {
+    setFilterApplied(true);
     getData(nestedDropdown);
   }, [nestedDropdown]);
 
   return (
     <PageWrapper className="page-wrapper">
-      <Sidebar sidebarIcon={<FilterAltRoundedIcon />}>
+      <Sidebar sidebarIcon={<FilterAltRoundedIcon />} collapse={filterApplied}>
         <SearchbarHolder>
           <Searchbar
             onQueryChange={handleSearchQueryChange}
@@ -196,10 +224,14 @@ export default function PopulationTrendOverTime() {
         </CTAContainer>
       </Sidebar>
       <MainContainer className="main-container">
-        <ChartContainer>
-          <LineCharts
+        <ChartContainer className="chart-container">
+          <ChartHeaderWrapper>
+            <ChartTitle>
+              {CHART.TITLE}
+            </ChartTitle>
+          </ChartHeaderWrapper>
+          <AreaChart
             data={data}
-            title={CHART.TITLE}
             xAxisLabel={CHART.X_AXIS_LABEL}
             yAxisLabel={CHART.Y_AXIS_LABEL}
           />
