@@ -123,6 +123,7 @@ export default function Searchbar({
                         <div 
                           className="matched-item" 
                           key={match[0]}
+                          style={{cursor: "pointer"}}
                           onClick={() => {
                             onSelect(facetName, match);
                             setShowMatches(false);

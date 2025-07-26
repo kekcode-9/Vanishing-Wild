@@ -86,6 +86,7 @@ export default function RecursiveDropdown({
 }) {
   const [lastSelection, setLastSelection] = useState(null); // String | Null
   const allowMultiple = useRef(false);
+  const capsuleRefsArr = useRef([]);
 
   const nestedDropdown = useSelector((state) => state.nestedDropdown);
   const dispatch = useDispatch();
@@ -123,7 +124,6 @@ export default function RecursiveDropdown({
     facetedList[facet].mappings?.map((mapping, i) => {
       const [key, valuesArr] = Object.entries(mapping)[0];
       const subFacet = facetedList[facet].subFacet;
-      parentFacetValue === key && console.log("to delete facet: ", key, " from ")
       parentFacetValue === key &&
         valuesArr.forEach((nestedValue, _) => {
           if (nestedDropdown[subFacet]?.includes(nestedValue)) {
@@ -215,17 +215,27 @@ export default function RecursiveDropdown({
           {Object.keys(facetedList).length > 0 &&
             facetKey in facetedList &&
             (facetedList[facetKey].isNested
-              ? facetedList[facetKey].mappings.map((mapping, _) => {
+              ? facetedList[facetKey].mappings.map((mapping, index) => {
                   // render the key and render child facet items recursively if the key is expanded (i.e., lastSelected)
                   const [key, valuesArr] = Object.entries(mapping)[0];
                   const subFacet = facetedList[facetKey].subFacet;
+
+                  if (lastSelection === key) {
+                    capsuleRefsArr.current[index].scrollIntoView({
+                      behavior: "smooth", // or 'auto'
+                      block: "start", // or 'start' / 'end'
+                    });
+                  }
 
                   return (
                     <FacetNestingWrapper
                       key={key}
                       className="facet-nesting-wrapper"
                     >
-                      <CapsuleItem className="capsule-item">
+                      <CapsuleItem
+                        className="capsule-item"
+                        ref={(el) => (capsuleRefsArr.current[index] = el)}
+                      >
                         {lastSelection === key ? (
                           <ArrowDropDownIcon
                             onClick={() => setLastSelection(null)}
@@ -268,12 +278,20 @@ export default function RecursiveDropdown({
                     </FacetNestingWrapper>
                   );
                 })
-              : facetedList[facetKey].options.map((option, _) => {
+              : facetedList[facetKey].options.map((option, index) => {
+                  if (lastSelection === option) {
+                    capsuleRefsArr.current[index].scrollIntoView({
+                      behavior: "smooth", // or 'auto'
+                      block: "start", // or 'start' / 'end'
+                    });
+                  }
+
                   return (
                     <CapsuleItem
                       key={option}
                       className="capsule-item"
                       onClick={() => handleSelectionChange([facetKey, option])}
+                      ref={(el) => (capsuleRefsArr.current[index] = el)}
                     >
                       {option}
                       {facetExists > 0 &&
@@ -294,17 +312,26 @@ export default function RecursiveDropdown({
         <>
           {facetKey in facetedList &&
             (facetedList[facetKey].isNested
-              ? facetedList[facetKey].mappings.map((mapping, _) => {
+              ? facetedList[facetKey].mappings.map((mapping, index) => {
                   const [key, valuesArr] = Object.entries(mapping)[0];
                   const subFacet = facetedList[facetKey].subFacet;
 
                   if (selectedValuesArr.includes(key)) {
+                    if (lastSelection === key) {
+                      capsuleRefsArr.current[index].scrollIntoView({
+                        behavior: "smooth", // or 'auto'
+                        block: "start", // or 'start' / 'end'
+                      });
+                    }
                     return (
                       <FacetNestingWrapper
                         className="facet-nesting-wrapper"
                         key={key}
                       >
-                        <CapsuleItem className="capsule-item">
+                        <CapsuleItem
+                          className="capsule-item"
+                          ref={(el) => (capsuleRefsArr.current[index] = el)}
+                        >
                           {lastSelection === key ? (
                             <ArrowDropDownIcon
                               onClick={() => setLastSelection(null)}
@@ -353,8 +380,15 @@ export default function RecursiveDropdown({
                     );
                   }
                 })
-              : facetedList[facetKey].options.map((option, _) => {
+              : facetedList[facetKey].options.map((option, index) => {
                   if (selectedValuesArr.includes(option)) {
+                    if (lastSelection === option) {
+                      capsuleRefsArr.current[index].scrollIntoView({
+                        behavior: "smooth", // or 'auto'
+                        block: "start", // or 'start' / 'end'
+                      });
+                    }
+
                     return (
                       <CapsuleItem
                         className="capsule-item"
@@ -362,6 +396,7 @@ export default function RecursiveDropdown({
                         onClick={() =>
                           handleSelectionChange([facetKey, option])
                         }
+                        ref={(el) => (capsuleRefsArr.current[index] = el)}
                       >
                         {facetKey} - {option}
                         {facetExists > 0 &&
