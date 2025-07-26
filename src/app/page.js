@@ -1,6 +1,3 @@
-"use client"
-import SightingsMapTimeline from "@/components/livingPlanetIndex/SightingsMapTimeline";
-
 export default function Home() {
 
   return (

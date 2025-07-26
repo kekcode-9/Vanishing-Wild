@@ -71,52 +71,10 @@ const ChartTitle = styled.div`
   font-weight: 700;
 `;
 
-const SearchbarHolder = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: fit-content;
-  padding: 0px 16px;
-  box-sizing: border-box;
-`;
-
-const DropdownWrapper = styled.div`
-  flex-grow: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-`;
-
-const CTAContainer = styled.div`
-  width: 100%;
-  height: fit-content;
-  padding: 0px 12px;
-`;
-
-const SeriesInfo = styled.div``
-
-const DEFAULT_FACET_KEY = "Class";
-
 export default function PopulationTrendOverTime() {
   const nestedDropdown = useSelector((state) => state.nestedDropdown);
 
-  const [facetedList, setFacetedList] = useState();
-  const [searchMatches, setSearchMatches] = useState({});
-  const [selectionFromSearch, setSelectionFromSearch] = useState();
   const [data, setData] = useState([]);
-  const [filterApplied, setFilterApplied] = useState(false);
-
-  const getFacetedFilter = (isNormalized = false) => {
-    accessPublicEndpoint(FILTER_OPTIONS)
-      .then((data) => {
-        console.log("response at ", FILTER_OPTIONS, ": ", data.facetedList);
-        setFacetedList(data.facetedList);
-      })
-      .catch((err) => {
-        console.error("error at ", FILTER_OPTIONS, ": ", err);
-      });
-  };
 
   /**
    *
@@ -161,68 +119,18 @@ export default function PopulationTrendOverTime() {
       .then((data) => {
         console.log("population trend chart data: ", data);
         setData(data.data);
-        setFilterApplied(false);
       })
       .catch((err) => {
         console.error("Error in population trend getData: ", err);
-        setFilterApplied(false);
       });
   };
 
   useEffect(() => {
-    getFacetedFilter();
-  }, []);
-
-  const handleSearchQueryChange = async (query) => {
-    accessPublicEndpoint(FILTER_OPTIONS, {}, { queryString: query })
-      .then((res) => {
-        console.log("search matches over api: ", res.matchedFacetedList);
-        setSearchMatches(res.matchedFacetedList);
-      })
-      .catch((err) => {
-        console.log("fai");
-      });
-  };
-
-  const handleSearchMatchSelection = (facetName, matchArr) => {
-    console.log("matchedArr: ", [
-      facetName + "-" + matchArr[0],
-      ...matchArr.slice(0),
-    ]);
-    setSelectionFromSearch([
-      facetName + "-" + matchArr[0],
-      ...matchArr.slice(0),
-    ]);
-  };
-
-  const handleFinalFacetSelection = useCallback(() => {
-    setFilterApplied(true);
     getData(nestedDropdown);
-  }, [nestedDropdown]);
+  }, [nestedDropdown])
 
   return (
     <PageWrapper className="page-wrapper">
-      <Sidebar sidebarIcon={<FilterAltRoundedIcon />} collapse={filterApplied}>
-        <SearchbarHolder>
-          <Searchbar
-            onQueryChange={handleSearchQueryChange}
-            searchMatches={searchMatches}
-            onSelect={handleSearchMatchSelection}
-          />
-        </SearchbarHolder>
-        <DropdownWrapper>
-          <RecursiveDropdown
-            facetKey={DEFAULT_FACET_KEY}
-            facetedList={facetedList}
-            externalSelection={selectionFromSearch}
-          />
-        </DropdownWrapper>
-        <CTAContainer>
-          <CTA isStretched={true} onClick={handleFinalFacetSelection}>
-            {APPLY}
-          </CTA>
-        </CTAContainer>
-      </Sidebar>
       <MainContainer className="main-container">
         <ChartContainer className="chart-container">
           <ChartHeaderWrapper>

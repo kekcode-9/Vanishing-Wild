@@ -1,11 +1,11 @@
 export const API_ENDPOINTS = {
+    FILTER_OPTIONS: "/filter-options",
     SIGHTINGS: {
         MAIN: "/sightings",
         FILTER_OPTIONS: "/sightings/filter-options",
     },
     POPULATION_TREND_CHART: {
         MAIN: "/population-trend-chart",
-        FILTER_OPTIONS: "/population-trend-chart/filter-options"
     }
 }
 export const QUERY_STRINGS = {

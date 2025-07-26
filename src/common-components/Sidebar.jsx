@@ -1,112 +1,82 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
 import styled from "styled-components";
 // import mui icons
-import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import DoubleArrowIcon from "@mui/icons-material/DoubleArrow";
 
 const SidebarContainer = styled.div`
   position: relative;
-  top: 0;
-  left: 0;
-  z-index: 1000;
-  flex-shrink: 0;
-  display: ${({ show }) => (show === "true" ? "flex" : "none")};
-  width: 460px;
+  display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: flex-start;
-  gap: 24px;
-  width: 400px;
-  height: 100vh;
-  overflow-y: hidden;
-  overflow-x: hidden;
-  background: black;
-  border-right: 1px solid #ffffff87;
-  padding: 16px;
+  width: fit-content;
+  height: 100%;
+  padding: 8px;
+  border-right: 1px solid #ffffff88;
+  background: #00000047;
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
 
-  @media (max-width: 640px) {
-    width: 100vw;
+  @media (max-width: 768px) {
+    border: ${({ isopen }) =>
+      isopen === "true" ? "1px solid #ffffff88" : "none"};
   }
+`;
+
+const SidebarWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: fit-content;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
 `;
 
 const SidebarIconHolder = styled.div`
   position: absolute;
-  top: 24px;
-  left: 24px;
-  z-index: 1000;
-  display: flex;
+  top: 50%;
+  right: -16px;
+  display: none;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: gray;
-  border-radius: 100px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ffffff88;
+  border-radius: 100%;
+  background: black;
   cursor: pointer;
-  box-shadow: 10px 10px 20px 4px black;
+
+  @media (max-width: 768px) {
+    display: flex;
+    transform: ${({ isopen }) => isopen === "true" ? "rotate(180deg)" : "rotate(0deg)"};
+  }
 `;
 
-const CloseButtonHolder = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  width: 100%;
-  height: fit-content;
-  padding: 0px 16px;
-`;
+export default function Sidebar({ children }) {
+  const [showMenu, toggleMenu] = useState();
 
-export default function Sidebar({ sidebarIcon, collapse = false, children }) {
-  const [showMenu, toggleMenu] = useState(false);
-
-  const iconRef = useRef();
-  const containerRef = useRef();
-
-  const handleSidebarCollapse = (e) => {
-    if (
-      (iconRef.current && iconRef.current.contains(e.target)) ||
-      (containerRef.current && containerRef.current.contains(e.target))
-    )
-      return;
-
-    toggleMenu(false);
-  };
-
-  useEffect(() => {
-    document.addEventListener("click", handleSidebarCollapse);
-
-    return () => {
-      document.removeEventListener("click", handleSidebarCollapse);
-    };
-  }, [showMenu]);
-
-  useEffect(() => {
-    if (collapse) toggleMenu(false);
-  }, [collapse]);
+  useLayoutEffect(() => {
+    console.log("window innerWidth: ", window.innerWidth);
+    window.innerWidth > 768 ? toggleMenu(true) : toggleMenu(false);
+  }, []);
 
   return (
-    <>
+    <SidebarContainer className="sidebar-container" isopen={`${showMenu}`}>
       <SidebarIconHolder
-        ref={iconRef}
+        className="sidebar-icon-holder"
+        isopen={`${showMenu}`}
         onClick={(e) => {
           e.stopPropagation();
-          toggleMenu(true);
+          toggleMenu(!showMenu);
         }}
       >
-        {sidebarIcon ?? <MenuRoundedIcon />}
+        <DoubleArrowIcon />
       </SidebarIconHolder>
-      <SidebarContainer
-        ref={containerRef}
-        className="sidebar-container"
-        show={`${showMenu}`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <CloseButtonHolder>
-          <CloseRoundedIcon
-            onClick={() => toggleMenu(false)}
-            sx={{ cursor: "pointer", color: "gray" }}
-          />
-        </CloseButtonHolder>
-        {children}
-      </SidebarContainer>
-    </>
+      <SidebarWrapper>
+        {showMenu && <>{children}</>}
+      </SidebarWrapper>
+    </SidebarContainer>
   );
 }
