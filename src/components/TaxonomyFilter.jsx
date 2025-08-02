@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import styled from "styled-components";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 // import mui icons
 import FilterListIcon from "@mui/icons-material/FilterList";
-import CloseIcon from '@mui/icons-material/Close';
+import CloseIcon from "@mui/icons-material/Close";
 // import common components
 import Sidebar from "@/common-components/Sidebar";
 import Searchbar from "@/common-components/Searchbar";
@@ -13,7 +13,15 @@ import CTA from "@/common-components/CTA";
 import { API_ENDPOINTS } from "@/constants/api-constants";
 import { UI_STRINGS } from "@/constants/ui-string-constants";
 // import services
-import { accessPublicEndpoint } from "@/services/rest.service";
+import {
+  accessPublicEndpoint,
+  getThirdPartyData,
+} from "@/services/rest.service";
+// import reducers
+import {
+  updateFocus,
+  updateSelections,
+} from "@/lib/store/features/about-selected-taxon/aboutTaxonSlice";
 
 const { FILTER_OPTIONS } = API_ENDPOINTS;
 const { APPLY } = UI_STRINGS.CTA;
@@ -90,6 +98,8 @@ const CTAContainer = styled.div`
 const DEFAULT_FACET_KEY = "Class";
 
 export default function TaxonomyFilter() {
+  const nestedDropdown = useSelector((state) => state.nestedDropdown);
+  const dispatch = useDispatch();
 
   const [showFilterOptions, toggleFilterOptions] = useState(false);
   const [facetedList, setFacetedList] = useState();
@@ -134,6 +144,55 @@ export default function TaxonomyFilter() {
     ]);
   };
 
+  const handleFilterApplication = useCallback(() => {
+    console.log("handleFilterApplication called");
+    const filterBy = Object.keys(nestedDropdown);
+    const focus =
+      filterBy.includes("Binomial") && nestedDropdown["Binomial"].length > 0
+        ? "Binomial"
+        : filterBy.includes("Family") && nestedDropdown["Family"].length > 0
+        ? "Family"
+        : "Class";
+
+    if (filterBy.length === 0 || !focus) return;
+
+    const focusMatches = nestedDropdown[focus];
+
+    let count = 0;
+    dispatch(updateFocus(focus));
+
+    focusMatches.forEach((match, _) => {
+      // use origin=* when using api.php
+      getThirdPartyData(
+        `https://en.wikipedia.org/api/rest_v1/page/summary/${match}`
+      )
+        .then((res) => {
+          dispatch(
+            updateSelections({
+              [match]: {
+                thumbnail: res.thumbnail ? {
+                  src: res.thumbnail.source,
+                  width: res.thumbnail.width,
+                  height: res.thumbnail.height,
+                } : null,
+                extract: res.extract,
+                pageSrc: res.content_urls?.desktop.page,
+              },
+            })
+          );
+
+          count++;
+
+          if (count === focusMatches.length) {
+            toggleFilterOptions(false);
+          }
+        })
+        .catch((err) => {
+          console.error("failed to fetch from wikipedia: ", err);
+        });
+    });
+  }, [nestedDropdown]);
+
   return (
     <>
       {!showFilterOptions ? (
@@ -163,7 +222,7 @@ export default function TaxonomyFilter() {
             />
           </DropdownWrapper>
           <CTAContainer>
-            <CTA isStretched={true} onClick={() => toggleFilterOptions(false)}>
+            <CTA isStretched={true} onClick={handleFilterApplication}>
               {APPLY}
             </CTA>
           </CTAContainer>

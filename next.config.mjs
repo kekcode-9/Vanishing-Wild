@@ -15,6 +15,15 @@ const nextConfig = {
 
     return config;
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "upload.wikimedia.org", // This is where Wikipedia images are actually hosted
+        pathname: "/wikipedia/**", // All images under /wikipedia/
+      },
+    ],
+  },
 };
 
 export default nextConfig;

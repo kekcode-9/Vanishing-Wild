@@ -25,16 +25,17 @@ export async function GET(request) {
   }
 
   try {
-    const whereClause = [`${focus} IN (${searchParams
-      .get(focus)
-      .split(",")
-      .map((value, _) => `'${value}'`)
-      .join(", ")})`];
+    const whereClause = [
+      `${focus} IN (${searchParams
+        .get(focus)
+        .split(",")
+        .map((value, _) => `'${value}'`)
+        .join(", ")})`,
+    ];
 
-    if (filterBy.includes)
-      if (focus === "Country") {
-        whereClause.push(`Country in (${searchParams.get("Country")})`);
-      }
+    if (focus === "Country") {
+      whereClause.push(`Country in (${searchParams.get("Country")})`);
+    }
 
     const filterQuery = `WHERE ${whereClause.join(" OR ")}`;
 

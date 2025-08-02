@@ -34,7 +34,7 @@ export function accessPublicEndpoint(
       .then((res) => res)
       .catch((err) => err);
   }
-};
+}
 
 export function accessPrivateEndpoint(
   endpoint,
@@ -73,4 +73,18 @@ export function accessPrivateEndpoint(
       .then((res) => res)
       .catch((err) => err);
   }
-};
+}
+
+export function getThirdPartyData(endpoint, params = {}) {
+  const query = Object.entries(params).map(
+    ([key, value], _) => `${key}=${value}`
+  );
+  const url = endpoint + (query.length > 0 ? `/?${query.join("&")}` : "");
+
+  return axios({
+    method: "GET",
+    url,
+  })
+    .then((res) => res.data)
+    .catch((err) => err);
+}

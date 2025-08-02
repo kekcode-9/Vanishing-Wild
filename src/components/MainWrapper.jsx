@@ -18,6 +18,7 @@ const Skeleton = styled.div`
 `;
 
 const Arena = styled.div`
+  position: relative;
   display: flex;
   flex-direction: row-reverse;
   width: 100%;

@@ -55,7 +55,7 @@ const ChartContainer = styled.div`
   align-items: flex-start;
   justify-content: flex-start;
   gap: 32px;
-  width: min(100%, 1000px);
+  width: min(calc(100% - 350px - 48px), 1400px); // 350px is width of TaxonInfo and 48px is a gap
 `;
 
 const ChartHeaderWrapper = styled.div`
@@ -73,6 +73,7 @@ const ChartTitle = styled.div`
 
 export default function PopulationTrendOverTime() {
   const nestedDropdown = useSelector((state) => state.nestedDropdown);
+  const { focusFacet } = useSelector((state) => state.aboutTaxon);
 
   const [data, setData] = useState([]);
 
@@ -87,35 +88,34 @@ export default function PopulationTrendOverTime() {
    * }
    * @param {*} isNormalized
    */
-  const getData = async (filters = null, isNormalized = false) => {
+  const getData = async (filters = null, focus, isNormalized = false) => {
     console.log("getData called");
     const filterBy = Object.keys(filters);
-    const focus =
-      filterBy.includes("Binomial") && filters["Binomial"].length > 0
-        ? "Binomial"
-        : filterBy.includes("Family") && filters["Family"].length > 0
-        ? "Family"
-        : "Class";
+    // const focus =
+    //   filterBy.includes("Binomial") && filters["Binomial"].length > 0
+    //     ? "Binomial"
+    //     : filterBy.includes("Family") && filters["Family"].length > 0
+    //     ? "Family"
+    //     : "Class";
 
-    const url =
-      `http://localhost:3000/api${MAIN}?` +
-      `filter_by=${filterBy}&` +
-      `focus=${focus}&` +
-      filterBy
-        .map(
-          (filterKey, _) =>
-            `${filterKey}=${filters[filterKey]
-              .map((filterVal, _) => filterVal.split(" | ")[0])
-              .join(",")}`
-        )
-        .join("&") +
-      `&Country=all` +
-      `&agg=sum`;
+    if (filterBy.length === 0 || !focus) return;
+
+    const url = `${MAIN}`;
 
     console.log("final url to send: ", url);
 
-    fetch(url)
-      .then((res) => res.json())
+    const params = {
+      filter_by: filterBy,
+      focus,
+    };
+
+    filterBy.forEach((filterKey, _) => {
+      params[filterKey] = filters[filterKey]
+        .map((filterVal, _) => filterVal.split(" | ")[0])
+        .join(",");
+    });
+
+    accessPublicEndpoint(url, {}, params)
       .then((data) => {
         console.log("population trend chart data: ", data);
         setData(data.data);
@@ -126,17 +126,17 @@ export default function PopulationTrendOverTime() {
   };
 
   useEffect(() => {
-    getData(nestedDropdown);
-  }, [nestedDropdown])
+    if (focusFacet) {
+      getData(nestedDropdown, focusFacet);
+    }
+  }, [nestedDropdown, focusFacet]);
 
   return (
-    <PageWrapper className="page-wrapper">
+    <PageWrapper className="population-trend-wrapper">
       <MainContainer className="main-container">
         <ChartContainer className="chart-container">
           <ChartHeaderWrapper>
-            <ChartTitle>
-              {CHART.TITLE}
-            </ChartTitle>
+            <ChartTitle>{CHART.TITLE}</ChartTitle>
           </ChartHeaderWrapper>
           <AreaChart
             data={data}

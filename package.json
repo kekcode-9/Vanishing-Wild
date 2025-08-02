@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@material-ui/icons": "^4.11.3",
     "@mui/icons-material": "^7.1.1",
     "@mui/material": "^7.1.0",
@@ -21,6 +21,7 @@
     "@reduxjs/toolkit": "^2.8.2",
     "axios": "^1.10.0",
     "duckdb": "^1.2.1",
+    "framer-motion": "^12.23.12",
     "fuse.js": "^7.1.0",
     "highcharts": "^12.2.0",
     "highcharts-react-official": "^3.2.2",
