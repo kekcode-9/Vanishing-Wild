@@ -26,11 +26,15 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ProviderWrapper>
-          <MainWrapper>
-            {children}
-          </MainWrapper>
+          <MainWrapper>{children}</MainWrapper>
         </ProviderWrapper>
       </body>
     </html>
   );
 }
+
+/**
+ MainWrapper has MainHeader and Arena
+ Arena has PageWrapper and Sidebar
+ PageWrapper contains the page content
+ */

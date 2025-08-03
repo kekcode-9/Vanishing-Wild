@@ -114,6 +114,28 @@ export default function RecursiveDropdown({
     }
   }, [externalSelection, facetKey]);
 
+  useEffect(() => {
+    if (!lastSelection) return;
+    console.log("for scroll | lastSelection: ", lastSelection);
+    console.log("for scroll | facetedList[", facetKey, "]: ", facetedList[facetKey]);
+    let index;
+    if (facetedList[facetKey].isNested) {
+      index = facetedList[facetKey]?.mappings?.findIndex(
+        (map) => Object.entries(map)[0][0] === lastSelection
+      );
+    } else {
+      index = facetExists[facetKey]?.options?.findIndex(
+        (option) => option === lastSelection
+      );
+    }
+    console.log("for scroll | index: ", index, " | capsuleRefsArr has at index: ", capsuleRefsArr.current[index]);
+
+    capsuleRefsArr.current[index]?.scrollIntoView({
+      behavior: "smooth", // or 'auto'
+      block: "end", // or 'start' / 'end'
+    });
+  }, [lastSelection, facetedList, facetKey]);
+
   const selectedValuesArr = useMemo(() => {
     if (selectedValues.length === 0) return [];
     return selectedValues.map((selected, _) => Object.values(selected)[0]);
@@ -220,13 +242,6 @@ export default function RecursiveDropdown({
                   const [key, valuesArr] = Object.entries(mapping)[0];
                   const subFacet = facetedList[facetKey].subFacet;
 
-                  if (lastSelection === key) {
-                    capsuleRefsArr.current[index].scrollIntoView({
-                      behavior: "smooth", // or 'auto'
-                      block: "start", // or 'start' / 'end'
-                    });
-                  }
-
                   return (
                     <FacetNestingWrapper
                       key={key}
@@ -279,12 +294,6 @@ export default function RecursiveDropdown({
                   );
                 })
               : facetedList[facetKey].options.map((option, index) => {
-                  if (lastSelection === option) {
-                    capsuleRefsArr.current[index].scrollIntoView({
-                      behavior: "smooth", // or 'auto'
-                      block: "start", // or 'start' / 'end'
-                    });
-                  }
 
                   return (
                     <CapsuleItem
@@ -317,12 +326,6 @@ export default function RecursiveDropdown({
                   const subFacet = facetedList[facetKey].subFacet;
 
                   if (selectedValuesArr.includes(key)) {
-                    if (lastSelection === key) {
-                      capsuleRefsArr.current[index].scrollIntoView({
-                        behavior: "smooth", // or 'auto'
-                        block: "start", // or 'start' / 'end'
-                      });
-                    }
                     return (
                       <FacetNestingWrapper
                         className="facet-nesting-wrapper"
@@ -382,12 +385,6 @@ export default function RecursiveDropdown({
                 })
               : facetedList[facetKey].options.map((option, index) => {
                   if (selectedValuesArr.includes(option)) {
-                    if (lastSelection === option) {
-                      capsuleRefsArr.current[index].scrollIntoView({
-                        behavior: "smooth", // or 'auto'
-                        block: "start", // or 'start' / 'end'
-                      });
-                    }
 
                     return (
                       <CapsuleItem

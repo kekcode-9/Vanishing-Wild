@@ -43,6 +43,7 @@ export default function MainWrapper({ children }) {
 }
 
 const HeaderWrapper = styled.div`
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
