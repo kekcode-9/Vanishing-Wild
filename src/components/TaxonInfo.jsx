@@ -113,7 +113,7 @@ export default function TaxonInfo() {
               <div>{selections[Object.keys(selections)[0]].extract}</div> */}
               {/* ---------- Header ---------- */}
               <CardHeader onClick={() => toggleCard(index)} iscolumn={`${isOpen}`}>
-                {taxonInfo.thumbnail.src && <Thumbnail
+                {taxonInfo.thumbnail?.src && <Thumbnail
                   src={taxonInfo.thumbnail?.src}
                   alt={taxonKey}
                   width={isOpen ? taxonInfo.thumbnail?.width : 64}

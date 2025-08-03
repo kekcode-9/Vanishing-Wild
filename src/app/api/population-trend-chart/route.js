@@ -37,7 +37,7 @@ export async function GET(request) {
       whereClause.push(`Country in (${searchParams.get("Country")})`);
     }
 
-    const filterQuery = `WHERE ${whereClause.join(" OR ")}`;
+    const filterQuery = `WHERE ${whereClause.join(" AND ")}`;
 
     const yearColumns = Array.from(
       { length: 2020 - 1950 + 1 },

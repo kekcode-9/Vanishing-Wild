@@ -91,12 +91,6 @@ export default function PopulationTrendOverTime() {
   const getData = async (filters = null, focus, isNormalized = false) => {
     console.log("getData called");
     const filterBy = Object.keys(filters);
-    // const focus =
-    //   filterBy.includes("Binomial") && filters["Binomial"].length > 0
-    //     ? "Binomial"
-    //     : filterBy.includes("Family") && filters["Family"].length > 0
-    //     ? "Family"
-    //     : "Class";
 
     if (filterBy.length === 0 || !focus) return;
 

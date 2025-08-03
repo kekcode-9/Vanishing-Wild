@@ -147,6 +147,7 @@ export default function TaxonomyFilter() {
   const handleFilterApplication = useCallback(() => {
     console.log("handleFilterApplication called");
     const filterBy = Object.keys(nestedDropdown);
+    // compare by common name here
     const focus =
       filterBy.includes("Binomial") && nestedDropdown["Binomial"].length > 0
         ? "Binomial"

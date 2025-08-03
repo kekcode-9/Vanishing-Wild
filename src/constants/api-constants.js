@@ -1,8 +1,8 @@
 export const API_ENDPOINTS = {
     FILTER_OPTIONS: "/filter-options",
     SIGHTINGS: {
-        MAIN: "/sightings",
-        FILTER_OPTIONS: "/sightings/filter-options",
+        MAIN: "/observations",
+        FILTER_OPTIONS: "/observations/filter-options",
     },
     POPULATION_TREND_CHART: {
         MAIN: "/population-trend-chart",

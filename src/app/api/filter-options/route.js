@@ -29,9 +29,6 @@ export async function GET(request) {
 
     console.log("query: ", new URL(request.url));
 
-    const oddShit = await queryDB(`SELECT * FROM lpi_data WHERE Family LIKE 'Falconidae' AND Class LIKE 'Reptilia'`);
-    console.log("oddShit: ", oddShit);
-
     if (queryString) {
       try {
         const familyMatches = await queryDB(
