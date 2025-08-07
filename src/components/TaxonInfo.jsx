@@ -7,22 +7,27 @@ import { motion, AnimatePresence } from "framer-motion";
 // import mui icons
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import CloseIcon from '@mui/icons-material/Close';
+// import custom svg icons
+import TaxonInfoIcon from "@/assets/icons/taxon-symbol.svg";
+// import common styles
+import { IconHolderRound } from "@/common-styles/iconStyles";
 
 const TaxonInfoWrapper = styled.div`
-  position: absolute;
-  top: 0;
-  right: 0;
+  // position: absolute;
+  // top: 0;
+  // right: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
   gap: 16px;
-  width: 400px;
-  height: 100vh;
+  width: 460px;
+  height: 100%;
   overflow-y: scroll;
-  border-radius: 10px 0px 0px 10px;
+  border-radius: 10px;
   background: black;
-  border-left: 1px solid #ffffff88;
+  border: 1px solid #ffffff88;
   padding: 16px;
   box-sizing: border-box;
 `;
@@ -41,20 +46,24 @@ const AccordionCard = styled(motion.div)`
 
 const CardHeader = styled.div`
   display: flex;
-  ${({ iscolumn }) => iscolumn === "true" && `
+  ${({ iscolumn }) =>
+    iscolumn === "true" &&
+    `
   flex-direction: column;
   align-items: flex-start;
   gap: 12px;
   `}
   align-items: center;
   gap: 12px;
-  // height: ${({ iscolumn }) => iscolumn === "true" ? "auto" : "72px"};
+  // height: ${({ iscolumn }) => (iscolumn === "true" ? "auto" : "72px")};
   cursor: pointer;
 `;
 
 const Thumbnail = styled(Image)`
   border-radius: 8px;
-  object-fit: cover;
+  border: 1px solid #ffffff44;
+  background: #000000;
+  object-fit: contain;
   aspect-ratio: 1 / 1; !important
 `;
 
@@ -84,68 +93,79 @@ const bodyVariants = {
 
 export default function TaxonInfo() {
   const { focusFacet, selections } = useSelector((state) => state.aboutTaxon);
+
+  const [showInfoPane, setShowInfoPane] = useState(false);
   const [openCardId, setOpenCardId] = useState(null);
 
   const toggleCard = (id) => setOpenCardId((prev) => (prev === id ? null : id));
 
   return (
-    <TaxonInfoWrapper>
-      {Object.keys(selections).length > 0 &&
-        Object.entries(selections).map(([taxonKey, taxonInfo], index) => {
-          const isOpen = openCardId === index;
+    <>
+      {!showInfoPane ? (
+        <IconHolderRound
+          style={{ position: "absolute", top: "36px", right: "52px" }}
+          onClick={() => setShowInfoPane(true)}
+        >
+          <Image width={24} src={TaxonInfoIcon} alt="taxon-info" />
+        </IconHolderRound>
+      ) : (
+        <TaxonInfoWrapper>
+          <IconHolderRound onClick={() => setShowInfoPane(false)}>
+            <CloseIcon />
+          </IconHolderRound>
+          {Object.keys(selections).length > 0 ?
+            Object.entries(selections).map(([taxonKey, taxonInfo], index) => {
+              const isOpen = openCardId === index;
 
-          return (
-            <AccordionCard
-              className="accordion-card"
-              key={index}
-              layout
-              initial={{ borderRadius: 12 }}
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            >
-              {/* <Image
-                src={selections[Object.keys(selections)[0]].thumbnail?.src}
-                alt={Object.keys(selections)[0]}
-                width={selections[Object.keys(selections)[0]].thumbnail?.width}
-                height={
-                  selections[Object.keys(selections)[0]].thumbnail?.height
-                }
-              />
-              <div>{selections[Object.keys(selections)[0]].extract}</div> */}
-              {/* ---------- Header ---------- */}
-              <CardHeader onClick={() => toggleCard(index)} iscolumn={`${isOpen}`}>
-                {taxonInfo.thumbnail?.src && <Thumbnail
-                  src={taxonInfo.thumbnail?.src}
-                  alt={taxonKey}
-                  width={isOpen ? taxonInfo.thumbnail?.width : 64}
-                  height={isOpen ? taxonInfo.thumbnail?.height : 64}
-                />}
-                <Title>{taxonKey}</Title>
-                <Arrow
-                  animate={{ rotate: isOpen ? 180 : 0 }}
-                  transition={{ duration: 0.3 }}
+              return (
+                <AccordionCard
+                  className="accordion-card"
+                  key={index}
+                  layout
+                  initial={{ borderRadius: 12 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 >
-                  <ExpandMoreIcon />
-                </Arrow>
-              </CardHeader>
-
-              {/* ---------- Body (collapsible) ---------- */}
-              <AnimatePresence initial={false}>
-                {isOpen && (
-                  <CardBody
-                    key={taxonKey}
-                    variants={bodyVariants}
-                    initial="collapsed"
-                    animate="expanded"
-                    exit="collapsed"
-                    transition={{ duration: 0.35, ease: "easeOut" }}
+                  <CardHeader
+                    onClick={() => toggleCard(index)}
+                    iscolumn={`${isOpen}`}
                   >
-                    <p>{taxonInfo.extract}</p>
-                  </CardBody>
-                )}
-              </AnimatePresence>
-            </AccordionCard>
-          );
-        })}
-    </TaxonInfoWrapper>
+                    {taxonInfo.thumbnail?.src && (
+                      <Thumbnail
+                        src={taxonInfo.thumbnail?.src}
+                        alt={taxonKey}
+                        width={isOpen ? taxonInfo.thumbnail?.width : 64}
+                        height={isOpen ? taxonInfo.thumbnail?.height : 64}
+                      />
+                    )}
+                    <Title>{taxonKey}</Title>
+                    <Arrow
+                      animate={{ rotate: isOpen ? 180 : 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {!isOpen ? <ExpandMoreIcon /> : <ExpandLessIcon />}
+                    </Arrow>
+                  </CardHeader>
+
+                  {/* ---------- Body (collapsible) ---------- */}
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <CardBody
+                        key={taxonKey}
+                        variants={bodyVariants}
+                        initial="collapsed"
+                        animate="expanded"
+                        exit="collapsed"
+                        transition={{ duration: 0.35, ease: "easeOut" }}
+                      >
+                        <p>{taxonInfo.extract}</p>
+                      </CardBody>
+                    )}
+                  </AnimatePresence>
+                </AccordionCard>
+              );
+            }) : <>Nothing to show here.</>}
+        </TaxonInfoWrapper>
+      )}
+    </>
   );
 }

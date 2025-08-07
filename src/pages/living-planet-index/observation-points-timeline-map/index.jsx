@@ -18,9 +18,11 @@ const PageWrapper = styled.div`
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
+  background: #141414;
+  border-radius: 4px;
 `;
 
 const MapWrapper = styled.div`

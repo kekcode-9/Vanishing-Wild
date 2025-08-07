@@ -11,7 +11,7 @@ const SidebarContainer = styled.div`
   justify-content: flex-start;
   width: fit-content;
   height: 100%;
-  padding: 8px;
+  padding: 20px 8px;
   border-right: 1px solid #ffffff88;
   background: #00000047;
   -webkit-backdrop-filter: blur(5px);

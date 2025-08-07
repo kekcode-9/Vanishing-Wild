@@ -4,6 +4,8 @@ import { useSelector, useDispatch } from "react-redux";
 // import mui icons
 import FilterListIcon from "@mui/icons-material/FilterList";
 import CloseIcon from "@mui/icons-material/Close";
+// import common styles
+import { IconHolderRound } from "@/common-styles/iconStyles";
 // import common components
 import Sidebar from "@/common-components/Sidebar";
 import Searchbar from "@/common-components/Searchbar";
@@ -49,18 +51,6 @@ const Container = styled.div`
   @media (max-width: 640px) {
     width: 100vw;
   }
-`;
-
-const FilterIconHolder = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: #097e11;
-  border-radius: 100px;
-  cursor: pointer;
-  box-shadow: 10px 10px 20px 4px black;
 `;
 
 const CloseButtonHolder = styled.div`
@@ -197,9 +187,9 @@ export default function TaxonomyFilter() {
   return (
     <>
       {!showFilterOptions ? (
-        <FilterIconHolder onClick={() => toggleFilterOptions(true)}>
+        <IconHolderRound onClick={() => toggleFilterOptions(true)}>
           <FilterListIcon />
-        </FilterIconHolder>
+        </IconHolderRound>
       ) : (
         <Container className="taxonomy-filter">
           <CloseButtonHolder>

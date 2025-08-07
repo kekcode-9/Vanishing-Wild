@@ -8,9 +8,10 @@ const TaxonInfo = dynamic(() => import('./TaxonInfo'), { ssr: false });
 
 const Wrapper = styled.div`
   display: flex;
-  flex-direction: column;
+  // flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
+  gap: 32px;
   width: 100%;
   height: 100%;
   overflow-x: hidden;
