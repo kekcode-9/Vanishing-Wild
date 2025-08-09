@@ -23,6 +23,7 @@ import {
 import {
   updateFocus,
   updateSelections,
+  toggleUpdatingStatus,
 } from "@/lib/store/features/about-selected-taxon/aboutTaxonSlice";
 
 const { FILTER_OPTIONS } = API_ENDPOINTS;
@@ -113,6 +114,7 @@ export default function TaxonomyFilter() {
   }, []);
 
   const handleSearchQueryChange = async (query) => {
+    dispatch(toggleUpdatingStatus(true));
     accessPublicEndpoint(FILTER_OPTIONS, {}, { queryString: query })
       .then((res) => {
         console.log("search matches over api: ", res.matchedFacetedList);
@@ -151,6 +153,9 @@ export default function TaxonomyFilter() {
 
     let count = 0;
     dispatch(updateFocus(focus));
+    // console.log("focusMatches: ", JSON.stringify(focusMatches));
+
+    const newSelections = {};
 
     focusMatches.forEach((match, _) => {
       // use origin=* when using api.php
@@ -158,23 +163,37 @@ export default function TaxonomyFilter() {
         `https://en.wikipedia.org/api/rest_v1/page/summary/${match}`
       )
         .then((res) => {
-          dispatch(
-            updateSelections({
-              [match]: {
-                thumbnail: res.thumbnail ? {
+          newSelections[match] = {
+            thumbnail: res.thumbnail
+              ? {
                   src: res.thumbnail.source,
                   width: res.thumbnail.width,
                   height: res.thumbnail.height,
-                } : null,
-                extract: res.extract,
-                pageSrc: res.content_urls?.desktop.page,
-              },
-            })
-          );
+                }
+              : null,
+            extract: res.extract,
+            pageSrc: res.content_urls?.desktop.page,
+          };
+          // dispatch(
+          //   updateSelections({
+          //     [match]: {
+          //       thumbnail: res.thumbnail ? {
+          //         src: res.thumbnail.source,
+          //         width: res.thumbnail.width,
+          //         height: res.thumbnail.height,
+          //       } : null,
+          //       extract: res.extract,
+          //       pageSrc: res.content_urls?.desktop.page,
+          //     },
+          //   })
+          // );
 
           count++;
 
           if (count === focusMatches.length) {
+            dispatch(updateSelections({
+              ...newSelections
+            }))
             toggleFilterOptions(false);
           }
         })
@@ -182,6 +201,8 @@ export default function TaxonomyFilter() {
           console.error("failed to fetch from wikipedia: ", err);
         });
     });
+
+    dispatch(toggleUpdatingStatus(false));
   }, [nestedDropdown]);
 
   return (

@@ -19,6 +19,7 @@ const initialState = {
     focusFacet: null,
     selections: {},
     country: null,
+    isUpdating: false
 }
 
 const aboutTaxonSlice = createSlice({
@@ -30,12 +31,15 @@ const aboutTaxonSlice = createSlice({
         },
         updateSelections: (state, action) => {
             state.selections = {
-                ...state.selections,
+                // ...state.selections,
                 ...action.payload
             }
         },
         updateCountry: (state, action) => {
             state.country = action.payload;
+        },
+        toggleUpdatingStatus: (state, action) => {
+            state.isUpdating = action.payload;
         }
     }
 });
@@ -43,6 +47,7 @@ const aboutTaxonSlice = createSlice({
 export const {
     updateFocus,
     updateSelections,
-    updateCountry
+    updateCountry,
+    toggleUpdatingStatus
 } = aboutTaxonSlice.actions;
 export default aboutTaxonSlice.reducer;

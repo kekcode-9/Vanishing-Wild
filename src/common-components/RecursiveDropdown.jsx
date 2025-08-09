@@ -18,6 +18,7 @@ import {
   removeValuesFromFacet,
   dropFacet,
 } from "@/lib/store/features/nested-dropdown-state/nestedDropdownStateSlice";
+import { toggleUpdatingStatus } from "@/lib/store/features/about-selected-taxon/aboutTaxonSlice";
 
 const DropdownContainer = styled.div`
   display: flex;
@@ -117,7 +118,12 @@ export default function RecursiveDropdown({
   useEffect(() => {
     if (!lastSelection) return;
     console.log("for scroll | lastSelection: ", lastSelection);
-    console.log("for scroll | facetedList[", facetKey, "]: ", facetedList[facetKey]);
+    console.log(
+      "for scroll | facetedList[",
+      facetKey,
+      "]: ",
+      facetedList[facetKey]
+    );
     let index;
     if (facetedList[facetKey].isNested) {
       index = facetedList[facetKey]?.mappings?.findIndex(
@@ -128,7 +134,12 @@ export default function RecursiveDropdown({
         (option) => option === lastSelection
       );
     }
-    console.log("for scroll | index: ", index, " | capsuleRefsArr has at index: ", capsuleRefsArr.current[index]);
+    console.log(
+      "for scroll | index: ",
+      index,
+      " | capsuleRefsArr has at index: ",
+      capsuleRefsArr.current[index]
+    );
 
     capsuleRefsArr.current[index]?.scrollIntoView({
       behavior: "smooth", // or 'auto'
@@ -164,6 +175,7 @@ export default function RecursiveDropdown({
   const handleSelectionChange = useCallback(
     ([facet, value], toAdd = true) => {
       console.log("facet: ", facet, " | value: ", value, " | toAdd: ", toAdd);
+      dispatch(toggleUpdatingStatus(true));
 
       if (allowMultiple) {
         /**
@@ -294,7 +306,6 @@ export default function RecursiveDropdown({
                   );
                 })
               : facetedList[facetKey].options.map((option, index) => {
-
                   return (
                     <CapsuleItem
                       key={option}
@@ -385,7 +396,6 @@ export default function RecursiveDropdown({
                 })
               : facetedList[facetKey].options.map((option, index) => {
                   if (selectedValuesArr.includes(option)) {
-
                     return (
                       <CapsuleItem
                         className="capsule-item"

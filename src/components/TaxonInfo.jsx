@@ -33,9 +33,11 @@ const TaxonInfoWrapper = styled.div`
 `;
 
 const AccordionCard = styled(motion.div)`
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   width: 100%;
+  max-height: 700px;
   background: #1a1a1a;
   color: #ffffff;
   padding: 12px 16px;
@@ -80,7 +82,7 @@ const Arrow = styled(motion.div)`
 
 /* Collapsible body animated with Framer Motion */
 const CardBody = styled(motion.div)`
-  overflow: hidden;
+  overflow: scroll;
   padding: 0 16px;
   background: #262626;
 `;
@@ -109,7 +111,7 @@ export default function TaxonInfo() {
           <Image width={24} src={TaxonInfoIcon} alt="taxon-info" />
         </IconHolderRound>
       ) : (
-        <TaxonInfoWrapper>
+        <TaxonInfoWrapper className="taxon-info-wrapper">
           <IconHolderRound onClick={() => setShowInfoPane(false)}>
             <CloseIcon />
           </IconHolderRound>

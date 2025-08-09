@@ -55,7 +55,8 @@ const ChartContainer = styled.div`
   align-items: flex-start;
   justify-content: flex-start;
   gap: 32px;
-  width: min(calc(100% - 350px - 48px), 1400px); // 350px is width of TaxonInfo and 48px is a gap
+  width: 100%;
+  height: 100%;
 `;
 
 const ChartHeaderWrapper = styled.div`
@@ -73,7 +74,7 @@ const ChartTitle = styled.div`
 
 export default function PopulationTrendOverTime() {
   const nestedDropdown = useSelector((state) => state.nestedDropdown);
-  const { focusFacet } = useSelector((state) => state.aboutTaxon);
+  const { focusFacet, isUpdating } = useSelector((state) => state.aboutTaxon);
 
   const [data, setData] = useState([]);
 
@@ -120,10 +121,10 @@ export default function PopulationTrendOverTime() {
   };
 
   useEffect(() => {
-    if (focusFacet) {
+    if (focusFacet && !isUpdating) {
       getData(nestedDropdown, focusFacet);
     }
-  }, [nestedDropdown, focusFacet]);
+  }, [nestedDropdown, focusFacet, isUpdating]);
 
   return (
     <PageWrapper className="population-trend-wrapper">
