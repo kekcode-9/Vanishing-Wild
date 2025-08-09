@@ -262,7 +262,7 @@ export default function ObservationPointsTimeline() {
             "circle-radius": [
               "interpolate",
               ["linear"],
-              ["to-number", ["get", "population"], 0], // <-- converts population to number, fallback 0
+              300, // ["to-number", ["get", "population"], 0] <-- converts population to number, fallback 0
               0,
               2,
               20,
