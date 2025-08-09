@@ -4,9 +4,15 @@ import { useSelector } from "react-redux";
 import styled from "styled-components";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+// import mui icons
+import LegendToggleOutlinedIcon from "@mui/icons-material/LegendToggleOutlined";
+import CloseFullscreenOutlinedIcon from "@mui/icons-material/CloseFullscreenOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 // import common components
 import YearSlider from "@/common-components/YearSlider";
-import SearchAndFilter from "@/common-components/SearchAndFilter";
+// import common styles
+import { IconHolderRound } from "@/common-styles/iconStyles";
 // import constants
 import { API_ENDPOINTS, QUERY_STRINGS } from "@/constants/api-constants";
 // import services
@@ -107,6 +113,9 @@ export default function ObservationPointsTimeline() {
 
   const [data, setData] = useState([]);
   const [mapLegend, setMapLegend] = useState({});
+  const [fovusedYear, setFocusedYear] = useState(1990);
+  const [showLegend, toggleShowLegend] = useState(false);
+  const [invisibleFocusVals, updateInvisibleFocusVals] = useState([]);
 
   const colorVsFocus = useRef([]);
 
@@ -134,6 +143,7 @@ export default function ObservationPointsTimeline() {
         console.log("data: ", data);
         setData(data);
         const focusedYear = Object.keys(data)[0];
+        setFocusedYear(focusedYear);
 
         if (focus) {
           updateMap(data, focus, focusedYear);
@@ -168,6 +178,8 @@ export default function ObservationPointsTimeline() {
 
     if (isUpdating) return;
 
+    updateInvisibleFocusVals([]);
+
     if (focusFacet) {
       getSightingsData(nestedDropdown, focusFacet);
       colorVsFocus.current = [];
@@ -188,7 +200,12 @@ export default function ObservationPointsTimeline() {
     }
   }, [nestedDropdown, focusFacet, isUpdating]);
 
-  const updateMap = (data, focusFacet, focusedYear = 1990) => {
+  const updateMap = (
+    data,
+    focusFacet,
+    focusedYear = 1990,
+    invisibleFocus = []
+  ) => {
     console.log(
       "useEffect for map has - mapObjRef: ",
       mapObjRef.current,
@@ -231,6 +248,12 @@ export default function ObservationPointsTimeline() {
 
         lastSrcRef.current = layerSource;
 
+        const circleOpacityArr = [];
+        invisibleFocus.forEach((val, _) => {
+          circleOpacityArr.push(val, 0);
+        });
+        // console.log("circleOpacityArr: ", circleOpacityArr)
+
         mapObjRef.current.addLayer({
           id: layerId,
           type: "circle",
@@ -257,7 +280,10 @@ export default function ObservationPointsTimeline() {
                   "#757575",
                 ]
               : "#757575", // fallback is grey
-            "circle-opacity": 0.7,
+            "circle-opacity":
+              invisibleFocus.length > 0
+                ? ["match", ["get", layerSource], ...circleOpacityArr, 0.7]
+                : 0.7,
           },
         });
 
@@ -313,24 +339,82 @@ export default function ObservationPointsTimeline() {
   return (
     <PageWrapper className="page-wrapper">
       <MapWrapper ref={mapElementRef} className="map-wrapper" />
-      <MapLegendContainer>
-        {Object.entries(mapLegend).map(([name, colorVal], _) => {
-          return (
-            <div key={name} className="legend">
-              {" "}
-              <div className="circle" style={{ background: colorVal }} />
-              <span>{name}</span>
-            </div>
-          );
-        })}
-      </MapLegendContainer>
+      {!showLegend && Object.keys(mapLegend) && (
+        <IconHolderRound
+          style={{ position: "absolute", top: "17px", left: "24px" }}
+          onClick={() => toggleShowLegend(true)}
+        >
+          <LegendToggleOutlinedIcon />
+        </IconHolderRound>
+      )}
+      {showLegend && (
+        <MapLegendContainer>
+          <div
+            style={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "flex-end",
+            }}
+          >
+            <CloseFullscreenOutlinedIcon
+              sx={{ cursor: "pointer" }}
+              onClick={() => toggleShowLegend(false)}
+            />
+          </div>
+          {Object.entries(mapLegend).map(([name, colorVal], _) => {
+            return (
+              <div key={name} className="legend">
+                <div className="circle" style={{ background: colorVal }} />
+                <span>{name}</span>
+                <div
+                  onClick={() => {
+                    const idx = invisibleFocusVals.indexOf(name);
+                    let updatedInvisibleFocusArr;
+
+                    if (idx === -1) {
+                      updatedInvisibleFocusArr = [...invisibleFocusVals, name];
+                    } else {
+                      updatedInvisibleFocusArr = [...invisibleFocusVals];
+                      updatedInvisibleFocusArr.splice(idx, 1);
+                      console.log(
+                        "removed ",
+                        name,
+                        " from invisibility arr: ",
+                        idx,
+                        updatedInvisibleFocusArr
+                      );
+                    }
+
+                    updateInvisibleFocusVals(updatedInvisibleFocusArr);
+                    updateMap(
+                      data,
+                      focusFacet,
+                      fovusedYear,
+                      updatedInvisibleFocusArr
+                    );
+                  }}
+                >
+                  {invisibleFocusVals.includes(name) ? (
+                    <VisibilityOffOutlinedIcon sx={{ cursor: "pointer" }} />
+                  ) : (
+                    <VisibilityOutlinedIcon sx={{ cursor: "pointer" }} />
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </MapLegendContainer>
+      )}
       <SliderContainer className="slider-contaier">
         <YearSlider
           min={1990}
           max={2020}
           step={1}
           showThumbLabel={false}
-          onChange={(year) => updateMap(data, focusFacet, year)}
+          onChange={(year) => {
+            setFocusedYear(year);
+            updateMap(data, focusFacet, year);
+          }}
         />
       </SliderContainer>
     </PageWrapper>
