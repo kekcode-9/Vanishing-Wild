@@ -7,7 +7,6 @@ import CloseIcon from "@mui/icons-material/Close";
 // import common styles
 import { IconHolderRound } from "@/common-styles/iconStyles";
 // import common components
-import Sidebar from "@/common-components/Sidebar";
 import Searchbar from "@/common-components/Searchbar";
 import RecursiveDropdown from "@/common-components/RecursiveDropdown";
 import CTA from "@/common-components/CTA";
@@ -88,7 +87,7 @@ const CTAContainer = styled.div`
 
 const DEFAULT_FACET_KEY = "Class";
 
-export default function TaxonomyFilter() {
+export default function MultiVertebrateFilter() {
   const nestedDropdown = useSelector((state) => state.nestedDropdown);
   const dispatch = useDispatch();
 
@@ -109,7 +108,7 @@ export default function TaxonomyFilter() {
   };
 
   useEffect(() => {
-    console.log("TaxonomyFilter entered");
+    console.log("MultiVertebrateFilter entered");
     getFacetedFilter();
   }, []);
 

@@ -3,7 +3,7 @@ import React from "react";
 import styled from "styled-components";
 // import components
 import PageWrapper from "./PageWrapper";
-import TaxonomyFilter from "./TaxonomyFilter";
+import MultiVertebrateFilter from "./MultiVertebrateFilter";
 // import common components
 import Sidebar from "@/common-components/Sidebar";
 
@@ -35,7 +35,7 @@ export default function MainWrapper({ children }) {
             {children}
         </PageWrapper>
         <Sidebar>
-            <TaxonomyFilter className="taxonomy-filter" />
+            <MultiVertebrateFilter className="taxonomy-filter" />
         </Sidebar>
       </Arena>
     </Skeleton>

@@ -1,167 +1,101 @@
-Now I need you to write the API for me that will query the lpi_data based on Binomial and Country filters (user might none either of these two filters or both).
-If the api call has either Country or Binomial filter but not both then always assume focus to be the column mentioned in the filter.
+1. https://api.mol.org/1.x/docs?m=uploader_ext#get-list-of-available-taxa
+USE FOR BASE64 RANGE MAPS AND OVERLAY ON MAP USING BOUNDS
 
-Below are some of the example API calls to the /population-trend-chart endpoint:
-1. "population-trend-chart/?filter_by=Common name&Binomial=panthera tigris" // consider population over all countries since countries filter isn't mentioned.
-2. "population-trend-chart/?filter_by=Common name&Binomial=panthera tigris,panthera leo"
-3. "population-trend-chart/?filter_by=Country,Common name&country=south africa&Binomial=panthera tigris,panthera leo"
-4. "population-trend-chart/?filter_by=Country&country=South Africa"
+Register or Log In: First, create an account or log in to the Map of Life platform. 
+This will allow you to obtain an authentication token.
 
-For each of the above, here is the API result I am expecting:
-1. result = {
-  "filter_by": ["Binomial"],
-  "axes": {
-    "x": "Year",
-    "y": "Population"
-  },
-  "data": [
-    {
-      "name": "Panthera tigris"
-      [
-        { "x": 1970, "y": 140 },
-        { "x": 1971, "y": 135 },
-        { "x": 1972, "y": 125 },
-        ...
-      ]
-    }
-  ]
-}
-2. result = {
-  "filter_by": ["Binomial"],
-  "axes": {
-    "x": "Year",
-    "y": "Population"
-  },
-  "data": [
-    {
-      "name": "Panthera tigris",
-      "data": [
-        { "x": 1970, "y": 140 },
-        { "x": 1971, "y": 135 },
-        { "x": 1972, "y": 125 },
-        ...
-      ]
-    },
-    {
-      "name": "Panthera leo",
-      "data": [
-        { "x": 1970, "y": 140 },
-        { "x": 1971, "y": 135 },
-        { "x": 1972, "y": 125 },
-        ...
-      ]
-    }
-  ]
-}
-3. result = {
-  "filter_by": ["Country", "Binomial"],
-  "axes": {
-    "x": "Year",
-    "y": "Population"
-  },
-  "country": "South Africa",
-  "data": [
-    {
-      "name": "Panthera tigris",
-      "data": [
-        { "x": 1970, "y": 140 },
-        { "x": 1971, "y": 135 },
-        { "x": 1972, "y": 125 },
-        ...
-      ]
-    },
-    {
-      "name": "Panthera leo",
-      "data": [
-        { "x": 1970, "y": 140 },
-        { "x": 1971, "y": 135 },
-        { "x": 1972, "y": 125 },
-        ...
-      ]
-    }
-  ]
-}
-4. result = {
-  "filter_by": ["Country"],
-  "axes": {
-    "x": "Year",
-    "y": "Population"
-  },
- "country": "South Africa",
-  "data": [
-    {
-      "name": "All"
-      [
-        { "x": 1970, "y": 140 },
-        { "x": 1971, "y": 135 },
-        { "x": 1972, "y": 125 },
-        ...
-      ]
-    }
-  ]
-}
+Obtain Authentication Token: Use the API's authentication endpoint to send your login credentials. 
+Upon successful login, you will receive an authtoken in the JSON response. 
+This token is required to authenticate your subsequent API requests.
 
-When only Country is in the filter, the population should be an aggregate (by default average unless the api endpoint has another filter call agg that mentions either min, max, avg or stddev) of the population of all unique Binomials belonging to that country. Similarly when multiple countries are chosen and no Binomial filter is given, the populations (y values) should be the aggrregate of all unique Binomials present in each of the participating countries.
-When Multiple country names and multiple Binomials are present in the filter, the result would look like this:
-5. "population-trend-chart/?filter_by=country,Common name&country=south africa,south america&Binomial=panthera tigris,panthera leo"
-result = {
-  "filter_by": ["Binomial", "Country],
-  "axes": {
-    "x": "Year",
-    "y": "Population"
-  },
- "binomial": "Panthera tigris,Panthera leo,...",
-  "data": [
-    {
-      "name": "South Africa"
-      [
-        { "x": 1970, "y": 140 },
-        { "x": 1971, "y": 135 },
-        { "x": 1972, "y": 125 },
-        ...
-      ]
-    },
-    {
-      "name": "South America"
-      [
-        { "x": 1970, "y": 140 },
-        { "x": 1971, "y": 135 },
-        { "x": 1972, "y": 125 },
-        ...
-      ]
-    },
-  ]
-}
+Use the Authentication Token: Include the authtoken in the headers or parameters of your API 
+requests to authenticate your calls. This acts as a key to access protected endpoints.
 
-6. "population-trend-chart/?filter_by=country,Common name&country=south africa,south america&Binomial=panthera tigris"
-result = {
-  "filter_by": ["Binomial", "Country],
-  "axes": {
-    "x": "Year",
-    "y": "Population"
-  },
- "binomial": "Panthera tigris",
-  "data": [
-    {
-      "name": "South Africa"
-      [
-        { "x": 1970, "y": 140 },
-        { "x": 1971, "y": 135 },
-        { "x": 1972, "y": 125 },
-        ...
-      ]
-    },
-    {
-      "name": "South America"
-      [
-        { "x": 1970, "y": 140 },
-        { "x": 1971, "y": 135 },
-        { "x": 1972, "y": 125 },
-        ...
-      ]
-    },
-  ]
-}
+2. https://api.iucnredlist.org/api-docs/index.html
 
-To note: The "data" key in the result is always an array of json objects. Each json object always has a "name" key which has a single value.
-a. When a single binomial filter is given, there is a single json object inside the data array and data[0].name is that binomial
+3. To find Redlist category from GBIF:
+https://api.gbif.org/v1/species/suggest?q=Gyps%20africanus
+q is the scientific name (binomial)
+the response contains keys like:[
+  {
+    "key": 9487001,
+    "nameKey": 4908220,
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "order": "Accipitriformes",
+    "family": "Accipitridae",
+    "genus": "Gyps",
+    "species": "Gyps africanus",
+    "kingdomKey": 1,
+    "phylumKey": 44,
+    "classKey": 212,
+    "orderKey": 7191147,
+    "familyKey": 2877,
+    "genusKey": 2480382,
+    "speciesKey": 9487001,
+    "parent": "Gyps",
+    "parentKey": 2480382,
+    "nubKey": 9487001,
+    "scientificName": "Gyps africanus Salvadori, 1865",
+    "canonicalName": "Gyps africanus",
+    "rank": "SPECIES",
+    "status": "ACCEPTED",
+    "higherClassificationMap": {
+      "1": "Animalia",
+      "44": "Chordata",
+      "212": "Aves",
+      "2877": "Accipitridae",
+      "2480382": "Gyps",
+      "7191147": "Accipitriformes"
+    },
+    "synonym": false,
+    "class": "Aves"
+  }
+]
+
+Use any of these keys (or nubkey) to make a search to:
+https://api.gbif.org/v1/species/{usageKey}/iucnRedListCategory
+
+also use any of these keys to get a map occurrence density data from gbif maps api
+
+replace usageKey with the appropriate key from the response and based on whether user searched by class, family, binomial
+or common name.
+
+What the occurrence density map tells us:
+1. Each point depicted in the GBIF occurrence density map represents a recorded occurrence or observation of a species at 
+a specific geographic location. Specifically:
+
+2. A point corresponds to an individual occurrence report in the GBIF database, which may come from published 
+specimen collections, human observations, or sensor data.
+
+3. Each occurrence includes metadata such as date, collector, identification, and coordinates.
+
+4. The density map aggregates how many such occurrence records fall within a spatial grid cell or tile at a given zoom level.
+
+5. It does not represent population size or abundance, only where and how many records have been submitted.
+
+6. Due to biases in sampling effort (geographic bias, accessibility, observer density), these points and their density may not 
+perfectly reflect the true species distribution or abundance.
+
+7. It provides a visual proxy for species presence data accumulated over time from multiple sources.
+
+8. In summary, each point on the density map is a documented species observation or specimen record location present in GBIF’s 
+aggregated data. The map tiles show the spatial density of these points to visualize distributions and sampling effort levels.
+
+With the GBIF occurrence density map, zooming in to a high level of detail only reveals the 
+tile-level density but does NOT show you actual individual observation points—because:
+
+The density raster tiles summarize the number of occurrences per grid cell for a given zoom, not actual point locations.
+
+Even at maximum zoom, you are still seeing aggregated record counts, not fine-grained individual observation markers.
+
+When Should You Zoom?
+Lower zoom levels (zoomed out): Best for understanding overall species distribution, global/regional “hotspots,” 
+and gaps in sampling.
+
+Higher zoom levels (zoomed in): Good for exploring regional variation, or checking the density of records 
+in more specific local regions. But you won’t see true individual point locations, only finer aggregation.
+
+If your goal is to examine actual individual occurrences (the true latitude/longitude for each record), 
+you should use the GBIF Occurrence API’s /occurrence/search endpoint with hasCoordinate=true, and plot those explicit 
+point locations on your own map layer.
