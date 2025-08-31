@@ -46,7 +46,7 @@ const nestedDropdownStateSlice = createSlice({
       const { facet } = action.payload;
       delete state[facet];
     },
-    resetState: (state) => {
+    resetNestedDropdown: (state) => {
       return {};
     },
   },
@@ -57,6 +57,6 @@ export const {
   insertUniqueValuesToFacet,
   removeValuesFromFacet,
   dropFacet,
-  resetState,
+  resetNestedDropdown,
 } = nestedDropdownStateSlice.actions;
 export default nestedDropdownStateSlice.reducer;

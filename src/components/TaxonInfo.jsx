@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 // import mui icons
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import CloseIcon from '@mui/icons-material/Close';
+import CloseIcon from "@mui/icons-material/Close";
 // import custom svg icons
 import TaxonInfoIcon from "@/assets/icons/taxon-symbol.svg";
 // import common styles
@@ -115,7 +115,7 @@ export default function TaxonInfo() {
           <IconHolderRound onClick={() => setShowInfoPane(false)}>
             <CloseIcon />
           </IconHolderRound>
-          {Object.keys(selections).length > 0 ?
+          {Object.keys(selections).length > 0 ? (
             Object.entries(selections).map(([taxonKey, taxonInfo], index) => {
               const isOpen = openCardId === index;
 
@@ -165,7 +165,10 @@ export default function TaxonInfo() {
                   </AnimatePresence>
                 </AccordionCard>
               );
-            }) : <>Nothing to show here.</>}
+            })
+          ) : (
+            <>Nothing to show here.</>
+          )}
         </TaxonInfoWrapper>
       )}
     </>

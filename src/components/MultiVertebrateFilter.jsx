@@ -6,6 +6,8 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import CloseIcon from "@mui/icons-material/Close";
 // import common styles
 import { IconHolderRound } from "@/common-styles/iconStyles";
+import { CloseButtonHolder } from "@/common-styles/closeButtonStyles";
+import { SidePanelContainer } from "@/common-styles/panelStyles";
 // import common components
 import Searchbar from "@/common-components/Searchbar";
 import RecursiveDropdown from "@/common-components/RecursiveDropdown";
@@ -27,50 +29,6 @@ import {
 
 const { FILTER_OPTIONS } = API_ENDPOINTS;
 const { APPLY } = UI_STRINGS.CTA;
-
-const Container = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1000;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 24px;
-  width: 400px;
-  height: calc(100vh - 64px); // 100%;
-  overflow-y: hidden;
-  overflow-x: hidden;
-  background: black;
-  border-right: 1px solid #ffffff87;
-  padding: 16px;
-  box-sizing: border-box;
-
-  @media (max-width: 640px) {
-    width: 100vw;
-  }
-`;
-
-const CloseButtonHolder = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  width: 100%;
-  height: fit-content;
-  padding: 0px 16px;
-`;
-
-const SearchbarHolder = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: fit-content;
-  padding: 0px 16px;
-  box-sizing: border-box;
-`;
 
 const DropdownWrapper = styled.div`
   flex-grow: 0;
@@ -173,19 +131,6 @@ export default function MultiVertebrateFilter() {
             extract: res.extract,
             pageSrc: res.content_urls?.desktop.page,
           };
-          // dispatch(
-          //   updateSelections({
-          //     [match]: {
-          //       thumbnail: res.thumbnail ? {
-          //         src: res.thumbnail.source,
-          //         width: res.thumbnail.width,
-          //         height: res.thumbnail.height,
-          //       } : null,
-          //       extract: res.extract,
-          //       pageSrc: res.content_urls?.desktop.page,
-          //     },
-          //   })
-          // );
 
           count++;
 
@@ -211,20 +156,18 @@ export default function MultiVertebrateFilter() {
           <FilterListIcon />
         </IconHolderRound>
       ) : (
-        <Container className="taxonomy-filter">
+        <SidePanelContainer className="side-panel-container">
           <CloseButtonHolder>
             <CloseIcon
               onClick={() => toggleFilterOptions(false)}
               sx={{ cursor: "pointer", color: "gray" }}
             />
           </CloseButtonHolder>
-          <SearchbarHolder>
-            <Searchbar
-              onQueryChange={handleSearchQueryChange}
-              searchMatches={searchMatches}
-              onSelect={handleSearchMatchSelection}
-            />
-          </SearchbarHolder>
+          <Searchbar
+            onQueryChange={handleSearchQueryChange}
+            searchMatches={searchMatches}
+            onSelect={handleSearchMatchSelection}
+          />
           <DropdownWrapper>
             <RecursiveDropdown
               facetKey={DEFAULT_FACET_KEY}
@@ -237,7 +180,7 @@ export default function MultiVertebrateFilter() {
               {APPLY}
             </CTA>
           </CTAContainer>
-        </Container>
+        </SidePanelContainer>
       )}
     </>
   );

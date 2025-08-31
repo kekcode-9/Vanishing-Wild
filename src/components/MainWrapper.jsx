@@ -4,8 +4,9 @@ import styled from "styled-components";
 // import components
 import PageWrapper from "./PageWrapper";
 import MultiVertebrateFilter from "./MultiVertebrateFilter";
+import GBIFRanksSearch from "./GBIFRanksSearch";
 // import common components
-import Sidebar from "@/common-components/Sidebar";
+import Sidebar from "@/components/Sidebar";
 
 const Skeleton = styled.div`
   display: flex;
@@ -35,7 +36,8 @@ export default function MainWrapper({ children }) {
             {children}
         </PageWrapper>
         <Sidebar>
-            <MultiVertebrateFilter className="taxonomy-filter" />
+            <MultiVertebrateFilter className="multi-vertebrate-filter" />
+            <GBIFRanksSearch />
         </Sidebar>
       </Arena>
     </Skeleton>

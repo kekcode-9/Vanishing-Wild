@@ -6,6 +6,10 @@ export const API_ENDPOINTS = {
     },
     POPULATION_TREND_CHART: {
         MAIN: "/population-trend-chart",
+    },
+    GBIF_TILES: "gbif-tiles",
+    GBIF_SPECIES: {
+        SUGGEST: "/gbif-species/search"
     }
 }
 export const QUERY_STRINGS = {

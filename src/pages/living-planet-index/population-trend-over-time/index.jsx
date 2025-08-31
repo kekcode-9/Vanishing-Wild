@@ -6,11 +6,6 @@ import { useSelector } from "react-redux";
 import FilterAltRoundedIcon from "@mui/icons-material/FilterAltRounded";
 // import components
 import AreaChart from "@/components/Charts";
-// import common components
-import Sidebar from "@/common-components/Sidebar";
-import Searchbar from "@/common-components/Searchbar";
-import RecursiveDropdown from "@/common-components/RecursiveDropdown";
-import CTA from "@/common-components/CTA";
 // import constants
 import { API_ENDPOINTS } from "@/constants/api-constants";
 import { UI_STRINGS } from "@/constants/ui-string-constants";

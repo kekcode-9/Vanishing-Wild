@@ -3,6 +3,16 @@ import styled from "styled-components";
 // import mui icons
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 
+const SearchbarHolder = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: fit-content;
+  padding: 0px 16px;
+  box-sizing: border-box;
+`;
+
 const SearchWrapper = styled.div`
   position: relative;
   display: flex;
@@ -79,66 +89,112 @@ const FacetBox = styled.div`
   }
 `;
 
+/**
+ * when hasFacets is false we expect searchMatches to be of the following shape:
+ * searchMatches = {
+ *  matchedObjs: [
+ *    {
+ *      ... // an object with any no. of key: value pairs
+ *    }
+ *  ],
+ *  matchKey: String // the key from individual matchedObjs item whose value to show
+ * }
+ *
+ * When a particular key is selected, onSelect will be passed the entire object that the key
+ * belongs to
+ */
 export default function Searchbar({
   onQueryChange = () => {},
   placeholder,
   searchMatches = {},
-  hasFacets = false,
+  hasFacets = true,
   onSelect = () => {},
 }) {
   const timeoutRef = useRef(null);
+  const searchInputRef = useRef(null);
+
   const [showMatches, setShowMatches] = useState(false);
 
   const handleQueryChange = useCallback((query) => {
     timeoutRef.current && clearTimeout(timeoutRef.current);
 
     timeoutRef.current = setTimeout(() => {
-      onQueryChange(query);
+      query.length >= 3 && onQueryChange(query); // has at least 3 characters
     }, 300);
-  }, []);
+  }, [onQueryChange]);
 
   useEffect(() => {
     console.log("searchMatches received: ", searchMatches);
   }, [searchMatches]);
 
   return (
-    <SearchWrapper>
-      <SearchRoundedIcon />
-      <Input
-        type="text"
-        placeholder={placeholder || "Search"}
-        onChange={(e) => handleQueryChange(e.target.value)}
-        onFocus={() => setShowMatches(true)}
-      />
-      {(Object.keys(searchMatches).length && showMatches) ? (
-        <SearchMatchesListWrapper className="search-mathces-wrapper">
-          {Object.keys(searchMatches).map((facetName, _) => {
-            return (
-              <FacetBox key={facetName}>
-                <div className="facet-header">{facetName}</div>
-                <>
-                  {searchMatches[facetName].length > 0 &&
-                    searchMatches[facetName].map((match, _) => {
-                      return (
-                        <div 
-                          className="matched-item" 
-                          key={match[0]}
-                          style={{cursor: "pointer"}}
-                          onClick={() => {
-                            onSelect(facetName, match);
-                            setShowMatches(false);
-                          }}
-                        >
-                          {match[0].replaceAll("_", " ")}
-                        </div>
-                      );
-                    })}
-                </>
-              </FacetBox>
-            );
-          })}
-        </SearchMatchesListWrapper>
-      ) : <></>}
-    </SearchWrapper>
+    <SearchbarHolder className="searchbar-holder">
+      <SearchWrapper className="searchbar-wrapper">
+        <SearchRoundedIcon />
+        <Input
+          className="search-input"
+          type="text"
+          ref={searchInputRef}
+          placeholder={placeholder || "Search"}
+          onChange={(e) => handleQueryChange(e.target.value)}
+          onFocus={() => setShowMatches(true)}
+        />
+        {Object.keys(searchMatches).length && showMatches ? (
+          <>
+            {hasFacets ? (
+              <SearchMatchesListWrapper className="search-mathces-wrapper">
+                {Object.keys(searchMatches).map((facetName, _) => {
+                  return (
+                    <FacetBox key={facetName}>
+                      <div className="facet-header">{facetName}</div>
+                      <>
+                        {searchMatches[facetName].length > 0 &&
+                          searchMatches[facetName].map((match, index) => {
+                            return (
+                              <div
+                                className="matched-item"
+                                key={match[0] + index}
+                                style={{ cursor: "pointer" }}
+                                onClick={() => {
+                                  onSelect(facetName, match);
+                                  searchInputRef.current.value = match[0].replaceAll("_", " ");
+                                  setShowMatches(false);
+                                }}
+                              >
+                                {match[0].replaceAll("_", " ")}
+                              </div>
+                            );
+                          })}
+                      </>
+                    </FacetBox>
+                  );
+                })}
+              </SearchMatchesListWrapper>
+            ) : (
+              <SearchMatchesListWrapper className="search-mathces-wrapper">
+                {searchMatches?.matchedObjs?.map((matchedItem, i) => {
+                  return (
+                    <div
+                      className="matched-item"
+                      key={matchedItem[searchMatches.matchKey] + i}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => {
+                        onSelect(matchedItem);
+                        searchInputRef.current.value = matchedItem[searchMatches.matchKey];
+                        setShowMatches(false);
+                      }}
+                    >
+                      {matchedItem[searchMatches.matchKey]}
+                    </div>
+                  );
+                })}
+              </SearchMatchesListWrapper>
+            )}
+          </>
+        ) : (
+          <></>
+        )}
+      </SearchWrapper>
+    </SearchbarHolder>
   );
 }
