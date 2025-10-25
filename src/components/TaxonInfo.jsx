@@ -4,6 +4,8 @@ import { useSelector } from "react-redux";
 import Image from "next/image";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
+// import mui components
+import { Tooltip } from "@mui/material";
 // import mui icons
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
@@ -104,12 +106,14 @@ export default function TaxonInfo() {
   return (
     <>
       {!showInfoPane ? (
-        <IconHolderRound
-          style={{ position: "absolute", top: "36px", right: "52px" }}
-          onClick={() => setShowInfoPane(true)}
-        >
-          <Image width={24} src={TaxonInfoIcon} alt="taxon-info" />
-        </IconHolderRound>
+        <Tooltip title={`About Selected Taxa`} placement="left">
+          <IconHolderRound
+            style={{ position: "absolute", top: "36px", right: "52px" }}
+            onClick={() => setShowInfoPane(true)}
+          >
+            <Image width={24} src={TaxonInfoIcon} alt="taxon-info" />
+          </IconHolderRound>
+        </Tooltip>
       ) : (
         <TaxonInfoWrapper className="taxon-info-wrapper">
           <IconHolderRound onClick={() => setShowInfoPane(false)}>

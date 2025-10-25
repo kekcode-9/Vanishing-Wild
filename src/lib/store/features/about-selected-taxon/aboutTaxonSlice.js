@@ -40,6 +40,11 @@ const aboutTaxonSlice = createSlice({
         },
         toggleUpdatingStatus: (state, action) => {
             state.isUpdating = action.payload;
+        },
+        resetTaxonInfo: (state, action) => {
+            state.selections = {};
+            state.country = null;
+            state.focusFacet = null
         }
     }
 });
@@ -48,6 +53,7 @@ export const {
     updateFocus,
     updateSelections,
     updateCountry,
-    toggleUpdatingStatus
+    toggleUpdatingStatus,
+    resetTaxonInfo
 } = aboutTaxonSlice.actions;
 export default aboutTaxonSlice.reducer;

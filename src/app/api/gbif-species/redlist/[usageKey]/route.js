@@ -1,20 +1,18 @@
 import { NextResponse } from "next/server";
-import { initializeDB, queryDB } from "@/lib/duckDB";
 
-export async function GET(request) {
+export async function GET(request, { params }) {
   try {
-    const { searchParams } = new URL(request.url);
-    const rank = searchParams.get("rank");
-    const q = searchParams.get("q");
+    const { usageKey } = await params;
 
-    if (!rank || !q) {
+    if (!usageKey) {
       return NextResponse.json({ error: "Bad request" }, { status: 400 });
     }
 
-    const targetUrl = `https://api.gbif.org/v1/species/suggest?rank=${rank}&q=${q}`;
+    const targetUrl = `https://api.gbif.org/v1/species/${usageKey}/iucnRedListCategory`;
+    console.log("targetUrl: ", targetUrl);
 
     const res = await fetch(targetUrl, { method: "GET" });
-    console.log(" ", res);
+    console.log("res.body: ", res.body);
     const contentType =
       res.headers.get("content-type") || "application/octet-stream";
 

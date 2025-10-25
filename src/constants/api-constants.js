@@ -9,7 +9,8 @@ export const API_ENDPOINTS = {
     },
     GBIF_TILES: "gbif-tiles",
     GBIF_SPECIES: {
-        SUGGEST: "/gbif-species/search"
+        SUGGEST: "/gbif-species/search", // proxy for api.gbif.org/v1/species/suggest
+        REDLIST_CATEGORY: "/gbif-species/redlist" // proxy for api.gbif.org/v1/species/${usageKey}/iucnRedListCategory
     }
 }
 export const QUERY_STRINGS = {

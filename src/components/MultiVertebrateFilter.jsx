@@ -4,6 +4,8 @@ import { useSelector, useDispatch } from "react-redux";
 // import mui icons
 import FilterListIcon from "@mui/icons-material/FilterList";
 import CloseIcon from "@mui/icons-material/Close";
+// import mui components
+import { Tooltip } from "@mui/material";
 // import common styles
 import { IconHolderRound } from "@/common-styles/iconStyles";
 import { CloseButtonHolder } from "@/common-styles/closeButtonStyles";
@@ -135,9 +137,11 @@ export default function MultiVertebrateFilter() {
           count++;
 
           if (count === focusMatches.length) {
-            dispatch(updateSelections({
-              ...newSelections
-            }))
+            dispatch(
+              updateSelections({
+                ...newSelections,
+              })
+            );
             toggleFilterOptions(false);
           }
         })
@@ -152,9 +156,11 @@ export default function MultiVertebrateFilter() {
   return (
     <>
       {!showFilterOptions ? (
-        <IconHolderRound onClick={() => toggleFilterOptions(true)}>
-          <FilterListIcon />
-        </IconHolderRound>
+        <Tooltip title="Filter by Multiple Vertebrate Groups" placement="right">
+          <IconHolderRound onClick={() => toggleFilterOptions(true)}>
+            <FilterListIcon />
+          </IconHolderRound>
+        </Tooltip>
       ) : (
         <SidePanelContainer className="side-panel-container">
           <CloseButtonHolder>

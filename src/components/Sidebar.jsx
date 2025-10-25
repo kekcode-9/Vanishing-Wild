@@ -23,11 +23,12 @@ const SidebarContainer = styled.div`
   }
 `;
 
-const SidebarWrapper = styled.div`
+const SidebarMenuWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  gap: 12px;
   width: fit-content;
   height: 100%;
   overflow-x: hidden;
@@ -50,7 +51,8 @@ const SidebarIconHolder = styled.div`
 
   @media (max-width: 768px) {
     display: flex;
-    transform: ${({ isopen }) => isopen === "true" ? "rotate(180deg)" : "rotate(0deg)"};
+    transform: ${({ isopen }) =>
+      isopen === "true" ? "rotate(180deg)" : "rotate(0deg)"};
   }
 `;
 
@@ -64,6 +66,8 @@ export default function Sidebar({ children }) {
 
   return (
     <SidebarContainer className="sidebar-container" isopen={`${showMenu}`}>
+      {/* SidebarIconHolder contains a button for collapsing and expanding the Sidebar
+      it is not is use at the moment and has display: none */}
       <SidebarIconHolder
         className="sidebar-icon-holder"
         isopen={`${showMenu}`}
@@ -74,9 +78,9 @@ export default function Sidebar({ children }) {
       >
         <DoubleArrowIcon />
       </SidebarIconHolder>
-      <SidebarWrapper>
+      <SidebarMenuWrapper className="sidebar-menu-wrapper">
         {showMenu && <>{children}</>}
-      </SidebarWrapper>
+      </SidebarMenuWrapper>
     </SidebarContainer>
   );
 }

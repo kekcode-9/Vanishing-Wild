@@ -1,6 +1,9 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import styled from "styled-components";
+import Image from "next/image";
+// import logo
+import logo from "@/assets/logo.svg";
 // import components
 import PageWrapper from "./PageWrapper";
 import MultiVertebrateFilter from "./MultiVertebrateFilter";
@@ -30,14 +33,12 @@ const Arena = styled.div`
 export default function MainWrapper({ children }) {
   return (
     <Skeleton className="skeleton">
-      <MainHeader></MainHeader>
+      <MainHeader />
       <Arena className="arena">
-        <PageWrapper>
-            {children}
-        </PageWrapper>
+        <PageWrapper>{children}</PageWrapper>
         <Sidebar>
-            <MultiVertebrateFilter className="multi-vertebrate-filter" />
-            <GBIFRanksSearch />
+          <MultiVertebrateFilter className="multi-vertebrate-filter" />
+          <GBIFRanksSearch />
         </Sidebar>
       </Arena>
     </Skeleton>
@@ -55,6 +56,23 @@ const HeaderWrapper = styled.div`
   border-bottom: 1px solid #ffffff88;
 `;
 
+const LogoDiv = styled.div`
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 500;
+  color: #097e11;
+`;
+
 function MainHeader() {
-  return <HeaderWrapper className="header-wrapper"></HeaderWrapper>;
+  return (
+    <HeaderWrapper className="header-wrapper">
+      <LogoDiv className="logo-div">
+        <Image className="logo" src={logo} alt="Logo" width={56} height={56} />
+        <span>Vanishing Wild</span>
+      </LogoDiv>
+    </HeaderWrapper>
+  );
 }
