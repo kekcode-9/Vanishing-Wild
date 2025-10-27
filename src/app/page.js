@@ -1,10 +1,5 @@
-import Sightings from "@/components/Sightings";
-
-export default async function Home() {
-
+export default function Home() {
   return (
-    <div className="HomeDiv" style={{width: "100vw", height: "auto"}}>
-      <Sightings />
-    </div>
+    <div className="MainDiv" style={{ width: "100vw", height: "100%" }}></div>
   );
 }

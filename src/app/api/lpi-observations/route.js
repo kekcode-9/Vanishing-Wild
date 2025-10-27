@@ -7,16 +7,35 @@ import { QUERY_STRINGS } from "@/constants/api-constants";
 const { COMMON_NAME, SPECIES } = QUERY_STRINGS;
 
 export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-
   await initializeDB();
+
+  const { searchParams } = new URL(request.url);
+  const filterBy = searchParams
+    .get("filter_by")
+    ?.split(",")
+    .map((s) => s.trim());
+  const focus = searchParams.get("focus");
+  const agg = searchParams.get("agg") || "sum";
 
   const yearColumns = Array.from(
     { length: 2020 - 1990 + 1 },
     (_, i) => `${1990 + i}`
   );
 
+  // if (!filterBy || !focus || !searchParams.get(focus)) {
+  //   return NextResponse.json(
+  //     {
+  //       error: "insufficient query parameters",
+  //     },
+  //     {
+  //       status: 400,
+  //     }
+  //   );
+  // }
+
   const columns = [
+    ...(focus ? [focus] : []),
+    ...(focus !== "Binomial" ? ["Binomial"] : []),
     "Common_name",
     "Species",
     "Country",
@@ -24,23 +43,19 @@ export async function GET(request) {
     "Longitude",
   ];
 
-  const filter = {};
-
-  if (searchParams.get(COMMON_NAME)) {
-    filter["Common_name"] = searchParams.get(COMMON_NAME);
-  }
-  if (searchParams.get(SPECIES)) {
-    filter["Species"] = searchParams.get(SPECIES);
-  }
+  const whereClause =
+    focus && searchParams.get(focus)
+      ? [
+          `${focus} IN (${searchParams
+            .get(focus)
+            .split(",")
+            .map((value, _) => `'${value}'`)
+            .join(", ")})`,
+        ]
+      : [];
 
   const filterQuery =
-    Object.entries(filter).length > 0
-      ? `WHERE ${Object.entries(filter)
-          .map(([key, value], _) => {
-            return `${key} = '${value}'`;
-          })
-          .join("AND")}`
-      : "";
+    whereClause.length > 0 ? `WHERE ${whereClause.join(" AND ")}` : "";
 
   /**
    * UNNEST to create an array of rows for each year instead of having all years present in one row and having the population for
@@ -63,6 +78,7 @@ export async function GET(request) {
     ${filterQuery}
   ) t -- subquery in the FROM clause needs an alias
   WHERE unnest_values IS NOT NULL`;
+  console.log("sql: ", sql);
 
   try {
     const results = await queryDB(sql);
@@ -81,8 +97,9 @@ export async function GET(request) {
             type: "Feature",
             properties: {
               // id: row.id,
-              species: row.Species,
-              commonName: row["Common_name"],
+              ...(focus && focus !== "Common_name" && { [focus]: row[focus] }),
+              Species: row.Species,
+              Common_name: row["Common_name"],
               population: row.population,
               country: row.Country,
             },
