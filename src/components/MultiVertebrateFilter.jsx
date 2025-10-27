@@ -73,6 +73,7 @@ export default function MultiVertebrateFilter() {
   }, []);
 
   const handleSearchQueryChange = async (query) => {
+    setSearchMatches({});
     dispatch(toggleUpdatingStatus(true));
     accessPublicEndpoint(FILTER_OPTIONS, {}, { queryString: query })
       .then((res) => {
@@ -85,7 +86,7 @@ export default function MultiVertebrateFilter() {
   };
 
   const handleSearchMatchSelection = (facetName, matchArr) => {
-    console.log("matchedArr: ", [
+    console.log("exec0 matchedArr: ", [
       facetName + "-" + matchArr[0],
       ...matchArr.slice(0),
     ]);

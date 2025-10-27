@@ -38,7 +38,8 @@ const CapsuleItem = styled.div`
   height: fit-content;
   padding: 4px 8px;
   border-radius: 100px;
-  border: 1px solid #ffffff45;
+  border: 1px solid
+    ${({ isselected }) => (isselected === "true" ? "#097e11" : "#ffffff45")};
   cursor: pointer;
 `;
 
@@ -59,6 +60,7 @@ const closeIconStyle = {
   height: "20px",
   cursor: "pointer",
   paddingLeft: "4px",
+  color: "red",
 };
 
 /**
@@ -98,12 +100,27 @@ export default function RecursiveDropdown({
   }, [facetedList]);
 
   useEffect(() => {
+    /**
+     * facetChoice has elements only if taxon group of the externally selected options matches the facetkey
+     * of the current recursion's facet exactly or falls in the branch whose root is the current facetkey
+     *
+     * The value in facetChoice is of the form "facetKey-value" (e.g: class-mammalia) and if it exists then
+     * for the current recursion level this value is the new lastSelection.
+     */
     const facetChoice = externalSelection
       ? externalSelection.filter((item, _) => item.includes(facetKey))
       : [];
 
     if (facetChoice.length > 0) {
       const value = facetChoice[0].split(`${facetKey}-`)[1];
+      console.log(
+        "exec0 | setting lastSelection to: ",
+        value,
+        " | where facetKey: ",
+        facetKey,
+        " | and facetChoice: ",
+        facetChoice
+      );
       setLastSelection(value);
       dispatch(
         insertUniqueValuesToFacet({
@@ -116,8 +133,12 @@ export default function RecursiveDropdown({
   }, [externalSelection, facetKey]);
 
   useEffect(() => {
+    /**
+     * Find the option from the current level of recursion that has a match with lastSelection
+     * and scroll to that option + highlight it
+     */
     if (!lastSelection) return;
-    console.log("for scroll | lastSelection: ", lastSelection);
+    console.log("exec0 for scroll | lastSelection: ", lastSelection);
     console.log(
       "for scroll | facetedList[",
       facetKey,
@@ -130,8 +151,8 @@ export default function RecursiveDropdown({
         (map) => Object.entries(map)[0][0] === lastSelection
       );
     } else {
-      index = facetExists[facetKey]?.options?.findIndex(
-        (option) => option === lastSelection
+      index = facetedList[facetKey]?.options?.findIndex((option) =>
+        option.includes(lastSelection)
       );
     }
     console.log(
@@ -143,7 +164,7 @@ export default function RecursiveDropdown({
 
     capsuleRefsArr.current[index]?.scrollIntoView({
       behavior: "smooth", // or 'auto'
-      block: "end", // or 'start' / 'end'
+      block: "start", // or 'start' / 'end'
     });
   }, [lastSelection, facetedList, facetKey]);
 
@@ -262,6 +283,7 @@ export default function RecursiveDropdown({
                       <CapsuleItem
                         className="capsule-item"
                         ref={(el) => (capsuleRefsArr.current[index] = el)}
+                        isselected={lastSelection === key ? "true" : "false"}
                       >
                         {lastSelection === key ? (
                           <ArrowDropDownIcon
@@ -312,6 +334,9 @@ export default function RecursiveDropdown({
                       className="capsule-item"
                       onClick={() => handleSelectionChange([facetKey, option])}
                       ref={(el) => (capsuleRefsArr.current[index] = el)}
+                      isselected={
+                        option.includes(lastSelection) ? "true" : "false"
+                      }
                     >
                       {option}
                       {facetExists > 0 &&
@@ -345,6 +370,7 @@ export default function RecursiveDropdown({
                         <CapsuleItem
                           className="capsule-item"
                           ref={(el) => (capsuleRefsArr.current[index] = el)}
+                          isselected={lastSelection === key ? "true" : "false"}
                         >
                           {lastSelection === key ? (
                             <ArrowDropDownIcon
@@ -404,6 +430,9 @@ export default function RecursiveDropdown({
                           handleSelectionChange([facetKey, option])
                         }
                         ref={(el) => (capsuleRefsArr.current[index] = el)}
+                        isselected={
+                          option.includes(lastSelection) ? "true" : "false"
+                        }
                       >
                         {facetKey} - {option}
                         {facetExists > 0 &&

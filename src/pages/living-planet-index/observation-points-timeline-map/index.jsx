@@ -1,9 +1,11 @@
 "use client";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+// import mui components
+import { Snackbar } from "@mui/material";
 // import mui icons
 import LegendToggleOutlinedIcon from "@mui/icons-material/LegendToggleOutlined";
 import CloseFullscreenOutlinedIcon from "@mui/icons-material/CloseFullscreenOutlined";
@@ -59,8 +61,8 @@ const SliderContainer = styled.div`
   width: 100vw;
   max-width: 100%;
   height: fit-content;
-  overflow: scroll;
-  padding: 20px 32px 80px;
+  overflow: visible;
+  padding: 20px 32px 40px;
   background: #00000087;
   backdrop-filter: blur(10px);
 
@@ -111,15 +113,30 @@ export default function ObservationPointsTimeline() {
   const lastLayerRef = useRef(null);
   const lastSrcRef = useRef(null);
 
-  const [data, setData] = useState([]);
+  const [data, setData] = useState();
   const [mapLegend, setMapLegend] = useState({});
-  const [fovusedYear, setFocusedYear] = useState(1990);
+  const [focusedYear, setFocusedYear] = useState(1990);
+  const [minYear, setMinYear] = useState(1990);
   const [showLegend, toggleShowLegend] = useState(false);
   const [invisibleFocusVals, updateInvisibleFocusVals] = useState([]);
+  const [noDataForYear, setNoDataForYear] = useState(false);
 
   const colorVsFocus = useRef([]);
+  const sliderContainer = useRef(null);
+
+  useLayoutEffect(() => {
+    if (sliderContainer.current) {
+      sliderContainer.current.scrollLeft = 0;
+    }
+  }, []);
 
   const getSightingsData = async (filters = null, focus = null) => {
+    console.log(
+      "exec1 | Entered getSightingsData with filters: ",
+      filters,
+      " | focus: ",
+      focus
+    );
     const filterBy = filters ? Object.keys(filters) : [];
 
     // if (filterBy.length === 0 || !focus) return;
@@ -140,14 +157,17 @@ export default function ObservationPointsTimeline() {
 
     accessPublicEndpoint(url, {}, params)
       .then((data) => {
-        console.log("data: ", data);
+        console.log("observation-point-timeline-map data: ", data);
         setData(data);
         const focusedYear = Object.keys(data)[0];
         setFocusedYear(focusedYear);
+        setMinYear(Number(focusedYear));
 
         if (focus) {
+          toggleShowLegend(true);
           updateMap(data, focus, focusedYear);
         } else {
+          toggleShowLegend(false);
           updateMap(data, null, 1990);
         }
       })
@@ -174,7 +194,7 @@ export default function ObservationPointsTimeline() {
     if (mapObjRef.current === null) {
       initiateMap([0, 0]);
     }
-    console.log("about to update map. is filtering on: ", isUpdating);
+    console.log("exec1 | about to update map. is filtering on: ", isUpdating);
 
     if (isUpdating) return;
 
@@ -207,15 +227,17 @@ export default function ObservationPointsTimeline() {
     invisibleFocus = []
   ) => {
     console.log(
-      "useEffect for map has - mapObjRef: ",
+      "exec1 | updateMap for map has - mapObjRef: ",
       mapObjRef.current,
       " | focusedYear: ",
       focusedYear,
       " | data: ",
-      data
+      data[`${focusedYear}`]
     );
     try {
       if (mapObjRef.current && data && data[`${focusedYear}`]) {
+        setNoDataForYear(false);
+
         const geoJSONCurrentYear = data[`${focusedYear}`]; // show only data from this year on map
         console.log("focused year: ", focusedYear);
         console.log("geoJSONCurrentYear: ", geoJSONCurrentYear);
@@ -330,6 +352,27 @@ export default function ObservationPointsTimeline() {
             .setHTML(popupHTML)
             .addTo(mapObjRef.current);
         });
+      } else if (!data[`${focusedYear}`]) {
+        console.log("data is undefined");
+        const layerSource = focusFacet ?? "Species";
+        const layerId = focusFacet
+          ? `${focusFacet.toLowerCase()}-circles-layer`
+          : "species-circles-layer";
+
+        if (mapObjRef.current.getSource(layerSource)) {
+          console.log("removing layer and source: ", layerId, layerSource);
+          mapObjRef.current.removeLayer(layerId);
+          mapObjRef.current.removeSource(layerSource);
+        } else {
+          console.log("current layer not found");
+        }
+
+        if (mapObjRef.current.getSource(lastSrcRef.current)) {
+          mapObjRef.current.removeLayer(lastLayerRef.current);
+          mapObjRef.current.removeSource(lastSrcRef.current);
+        }
+
+        setNoDataForYear(true);
       }
     } catch (err) {
       console.error("Failed to add map layers: ", err);
@@ -337,8 +380,13 @@ export default function ObservationPointsTimeline() {
   };
 
   return (
-    <PageWrapper className="page-wrapper">
+    <PageWrapper className="page-wrapper observation-points-timeline-map-wrapper">
       <MapWrapper ref={mapElementRef} className="map-wrapper" />
+      <Snackbar
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        open={noDataForYear}
+        message={"No observation data available for the selected year."}
+      />
       {!showLegend && Object.keys(mapLegend) && (
         <IconHolderRound
           style={{ position: "absolute", top: "17px", left: "24px" }}
@@ -389,7 +437,7 @@ export default function ObservationPointsTimeline() {
                     updateMap(
                       data,
                       focusFacet,
-                      fovusedYear,
+                      focusedYear,
                       updatedInvisibleFocusArr
                     );
                   }}
@@ -405,18 +453,20 @@ export default function ObservationPointsTimeline() {
           })}
         </MapLegendContainer>
       )}
-      <SliderContainer className="slider-contaier">
-        <YearSlider
-          min={1990}
-          max={2020}
-          step={1}
-          showThumbLabel={false}
-          onChange={(year) => {
-            setFocusedYear(year);
-            updateMap(data, focusFacet, year);
-          }}
-        />
-      </SliderContainer>
+      {data && (
+        <SliderContainer className="slider-contaier" ref={sliderContainer}>
+          <YearSlider
+            min={minYear}
+            max={2020}
+            step={1}
+            showThumbLabel={false}
+            onChange={(year) => {
+              setFocusedYear(year);
+              updateMap(data, focusFacet, year, invisibleFocusVals);
+            }}
+          />
+        </SliderContainer>
+      )}
     </PageWrapper>
   );
 }

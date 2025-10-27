@@ -103,6 +103,8 @@ export default function TaxonInfo() {
 
   const toggleCard = (id) => setOpenCardId((prev) => (prev === id ? null : id));
 
+  if (Object.keys(selections).length === 0) return;
+
   return (
     <>
       {!showInfoPane ? (

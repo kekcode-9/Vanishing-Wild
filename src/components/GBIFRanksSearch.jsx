@@ -37,7 +37,8 @@ import {
 const { SUGGEST } = API_ENDPOINTS.GBIF_SPECIES;
 
 const { APPLY } = UI_STRINGS.CTA;
-const { RANK_OPTIONS, DROPDOWN_LABEL } = UI_STRINGS.GBIF_RANK_SEARCH;
+const { RANK_OPTIONS, DROPDOWN_LABEL, mapRankToFacet } =
+  UI_STRINGS.GBIF_RANK_SEARCH;
 
 export default function GBIFRanksSearch() {
   const dispatch = useDispatch();
@@ -62,6 +63,7 @@ export default function GBIFRanksSearch() {
    */
   const handleSearchQueryChange = useCallback(
     (query) => {
+      setSearchMatches({});
       dispatch(toggleUpdatingStatus(true));
       accessPublicEndpoint(SUGGEST, {}, { rank: selectedRank, q: query })
         .then((res) => {
@@ -110,7 +112,7 @@ export default function GBIFRanksSearch() {
       console.log("taxonInfo: ", taxonInfo);
 
       dispatch(resetTaxonInfo());
-      dispatch(updateFocus(capitalizeFirstLetter(selectedRankLower)));
+      dispatch(updateFocus(mapRankToFacet(selectedRankLower)));
       dispatch(
         updateSelections({
           [rankVal]: {
@@ -119,10 +121,11 @@ export default function GBIFRanksSearch() {
         })
       );
       dispatch(resetNestedDropdown());
+      console.log("exec1 | mapping ", selectedRankLower, " to facet");
       possiblyVertebrate &&
         dispatch(
           updateFacet({
-            facet: capitalizeFirstLetter(selectedRankLower),
+            facet: mapRankToFacet(selectedRankLower),
             valuesArr: [rankVal],
           })
         );
@@ -145,6 +148,9 @@ export default function GBIFRanksSearch() {
       console.log("nestedDropdownStateSlice: ", nested);
       console.log("**********GBIFRankSearch testing logs end**********");
       // testing only logs end
+
+      dispatch(toggleUpdatingStatus(false));
+      toggleFilterOptions(false);
 
       // make sure for binomial / species the facet name is the same everywhere (binomial) and has the same naming convention (<genus>_<species>)
       // gbif response's species key contains the binomial but in the format ("<genus> <species>")

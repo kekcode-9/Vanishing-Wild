@@ -1,11 +1,10 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
 import styled from "styled-components";
 import { useSelector } from "react-redux";
 // import mui icons
 import FilterAltRoundedIcon from "@mui/icons-material/FilterAltRounded";
-// import components
-import AreaChart from "@/components/Charts";
 // import constants
 import { API_ENDPOINTS } from "@/constants/api-constants";
 import { UI_STRINGS } from "@/constants/ui-string-constants";
@@ -15,6 +14,10 @@ import { accessPublicEndpoint } from "@/services/rest.service";
 const { FILTER_OPTIONS, MAIN } = API_ENDPOINTS.POPULATION_TREND_CHART;
 const { APPLY } = UI_STRINGS.CTA;
 const { CHART } = UI_STRINGS.LIVING_PLANET_INDEX.POPULATION_TREND;
+
+const AreaChart = dynamic(() => import("@/components/Charts"), {
+  ssr: false,
+});
 
 const PageWrapper = styled.div`
   display: flex;
@@ -122,7 +125,7 @@ export default function PopulationTrendOverTime() {
   }, [nestedDropdown, focusFacet, isUpdating]);
 
   return (
-    <PageWrapper className="population-trend-wrapper">
+    <PageWrapper className="page-wrapper population-trend-wrapper">
       <MainContainer className="main-container">
         <ChartContainer className="chart-container">
           <ChartHeaderWrapper>

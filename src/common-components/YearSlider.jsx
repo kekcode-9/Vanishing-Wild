@@ -1,14 +1,22 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import styled from "styled-components";
-import { Range, getTrackBackground } from "react-range";
+// import mui components
+import Slider from "@mui/material/Slider";
+import MuiInput from "@mui/material/Input";
 
 const RangeWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 24px;
   width: ${(props) => props.width};
   height: ${(props) => props.height};
+`;
+
+const Input = styled(MuiInput)`
+  width: 112px;
+  flex-shrink: 0;
 `;
 
 export default function YearSlider({
@@ -19,114 +27,104 @@ export default function YearSlider({
   stepGap = 120,
   showThumbLabel = true,
   showMarkers = true,
-  onChange=() => {}
+  onChange = () => {},
 }) {
-  const [values, setValues] = useState([min]);
+  const rangeWrapperRef = useRef(null);
+
+  const [val, setVal] = useState(min);
 
   const markerCount = useMemo(() => {
     return (max - min) / step + 1;
   }, [step, min, max]);
 
-  const handleSlide = (values) => {
-    onChange(values[0]);
-    setValues(values);
-  }
+  useEffect(() => {
+    // Disable browser scroll restoration for this component
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
 
+    // Reset scroll position on mount
+    if (rangeWrapperRef.current) {
+      rangeWrapperRef.current.scrollLeft = 0;
+    }
+
+    // Use a slight delay to ensure it overrides browser restoration
+    const timeoutId = setTimeout(() => {
+      if (rangeWrapperRef.current) {
+        rangeWrapperRef.current.scrollLeft = 0;
+      }
+    }, 0);
+
+    return () => {
+      clearTimeout(timeoutId);
+      // Optionally restore default behavior on unmount
+      if ("scrollRestoration" in window.history) {
+        // window.history.scrollRestoration = "auto";
+      }
+    };
+  }, []);
+  // ${((markerCount - 1) * stepGap).toString()}px
   return (
     <RangeWrapper
+      ref={rangeWrapperRef}
       className="range-wrapper"
-      width={`${((markerCount - 1) * stepGap).toString()}px`}
+      width={`100%`}
       height={height}
     >
-      <Range
-        values={values}
-        step={step}
+      <Slider
+        onChange={(e, newVal) => {
+          setVal(newVal);
+          onChange(newVal);
+        }}
         min={min}
         max={max}
-        rtl={false}
-        onChange={(values) => setValues(values)}
-        onFinalChange={(values) => handleSlide(values)}
-        renderMark={({ props, index }) =>
-          showMarkers && (
-            <div
-              className="marker"
-              {...props}
-              key={props.key}
-              style={{
-                ...props.style,
-                height: "16px",
-                width: "2px",
-                borderRadius: "100px",
-                backgroundColor: " #ffffff",
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  top: "32px",
-                }}
-              >
-                {min + index}
-              </div>
-            </div>
-          )
-        }
-        renderTrack={({ props, children }) => (
-          <div
-            className="render-track"
-            onMouseDown={props.onMouseDown}
-            onTouchStart={props.onTouchStart}
-            style={{
-              ...props.style,
-              height: "36px",
-              display: "flex",
-              width: "100%",
-            }}
-          >
-            <div
-              ref={props.ref}
-              style={{
-                height: "5px",
-                width: "100%",
-                borderRadius: "4px",
-                background: "white",
-                alignSelf: "center",
-              }}
-            >
-              {children}
-            </div>
-          </div>
-        )}
-        renderThumb={({ props }) => (
-          <div
-            {...props}
-            key={props.key}
-            style={{
-              ...props.style,
-              height: "42px",
-              width: "10px",
-              borderRadius: "100px",
-              backgroundColor: " #30b2f8",
-            }}
-          >
-            {showThumbLabel && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "-28px",
-                  color: "#fff",
-                  fontWeight: "bold",
-                  fontSize: "14px",
-                  padding: "4px",
-                  borderRadius: "4px",
-                  backgroundColor: "#548BF4",
-                }}
-              >
-                {values[0]}
-              </div>
-            )}
-          </div>
-        )}
+        // step={1}
+        value={val}
+        sx={{
+          width: "100%",
+          "& .MuiSlider-mark": {
+            backgroundColor: "white", // tick color
+            height: 16,
+            width: 2,
+          },
+          "& .MuiSlider-track": {
+            backgroundColor: "#097e11",
+          },
+          "& .MuiSlider-rail": {
+            height: 10,
+            backgroundColor: "white",
+          },
+          "& .MuiSlider-markLabel": {
+            color: "white", // label color
+            fontSize: "16px",
+          },
+          "& .MuiSlider-thumb": {
+            backgroundColor: "#097e11",
+          },
+        }}
+        valueLabelDisplay="on"
+        // marks={
+        //   showMarkers
+        //     ? Array.from({ length: max - min + 1 }, (_, i) => {
+        //         const value = min + step * i;
+        //         return { value, label: `${value}` };
+        //       })
+        //     : []
+        // }
+      />
+      <Input
+        value={val}
+        onChange={(e) => {
+          setVal(Number(e.target.value));
+          onChange(Number(e.target.value));
+        }}
+        inputProps={{
+          step: 1,
+          min,
+          max,
+          type: "number",
+          "aria-labelledby": "input-slider",
+        }}
       />
     </RangeWrapper>
   );

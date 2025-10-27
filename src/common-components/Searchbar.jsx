@@ -114,17 +114,24 @@ export default function Searchbar({
   const searchInputRef = useRef(null);
 
   const [showMatches, setShowMatches] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
 
-  const handleQueryChange = useCallback((query) => {
-    timeoutRef.current && clearTimeout(timeoutRef.current);
+  const handleQueryChange = useCallback(
+    (query) => {
+      timeoutRef.current && clearTimeout(timeoutRef.current);
+      setShowLoader(true);
 
-    timeoutRef.current = setTimeout(() => {
-      query.length >= 3 && onQueryChange(query); // has at least 3 characters
-    }, 300);
-  }, [onQueryChange]);
+      timeoutRef.current = setTimeout(() => {
+        query.length >= 3 && onQueryChange(query); // has at least 3 characters
+      }, 300);
+    },
+    [onQueryChange]
+  );
 
   useEffect(() => {
-    console.log("searchMatches received: ", searchMatches);
+    setShowLoader((prev) =>
+      Object.keys(searchMatches).length === 0 ? prev : false
+    );
   }, [searchMatches]);
 
   return (
@@ -157,7 +164,8 @@ export default function Searchbar({
                                 style={{ cursor: "pointer" }}
                                 onClick={() => {
                                   onSelect(facetName, match);
-                                  searchInputRef.current.value = match[0].replaceAll("_", " ");
+                                  searchInputRef.current.value =
+                                    match[0].replaceAll("_", " ");
                                   setShowMatches(false);
                                 }}
                               >
@@ -180,7 +188,8 @@ export default function Searchbar({
                       style={{ cursor: "pointer" }}
                       onClick={() => {
                         onSelect(matchedItem);
-                        searchInputRef.current.value = matchedItem[searchMatches.matchKey];
+                        searchInputRef.current.value =
+                          matchedItem[searchMatches.matchKey];
                         setShowMatches(false);
                       }}
                     >
@@ -191,6 +200,10 @@ export default function Searchbar({
               </SearchMatchesListWrapper>
             )}
           </>
+        ) : showLoader ? (
+          <SearchMatchesListWrapper className="search-mathces-wrapper">
+            <div>Loading...</div>
+          </SearchMatchesListWrapper>
         ) : (
           <></>
         )}

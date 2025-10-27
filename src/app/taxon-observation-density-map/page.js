@@ -58,10 +58,9 @@ export default function page() {
   }, []);
 
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
-      MOL
+    <div style={{ width: "100%", height: "100%" }}>
       <div
-        style={{ width: "100vw", height: "100vh", display: "flex" }}
+        style={{ width: "100%", height: "100%", display: "flex" }}
         ref={mapElementRef}
         className="map-wrapper"
       />
